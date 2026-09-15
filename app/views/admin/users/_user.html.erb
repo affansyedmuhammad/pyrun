@@ -1,8 +1,10 @@
 <tr>
-  <td class="whitespace-nowrap">
-    <span class="text-zinc-900"><%= user.email_address %></span>
-    <% if user.admin? %><span class="tag">Admin</span><% end %>
-    <% if user == Current.user %><span class="text-xs text-zinc-500">(you)</span><% end %>
+  <td class="w-full max-w-0">
+    <div class="flex items-center gap-1">
+      <span class="truncate text-zinc-900" title="<%= user.email_address %>"><%= user.email_address %></span>
+      <% if user.admin? %><span class="tag shrink-0">Admin</span><% end %>
+      <% if user == Current.user %><span class="shrink-0 text-xs text-zinc-500">(you)</span><% end %>
+    </div>
   </td>
   <td class="whitespace-nowrap"><span class="status"><%= account_status_dot(user) %><%= user.account_status.capitalize %></span></td>
   <td class="text-right tabular-nums">
@@ -20,7 +22,7 @@
         <%= button_to "Reactivate", reactivate_admin_user_path(user), class: "btn btn-quiet h-8 px-2", form_class: "contents" %>
       <% elsif user != Current.user %>
         <% if sessions.positive? %>
-          <%= button_to "Sign out everywhere", sessions_admin_user_path(user), method: :delete, class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Ends #{pluralize(sessions, 'session')}" %>
+          <%= button_to "Sign out", sessions_admin_user_path(user), method: :delete, class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Sign out everywhere: ends #{pluralize(sessions, 'session')}" %>
         <% end %>
         <%= button_to "Deactivate", deactivate_admin_user_path(user), class: "btn btn-quiet h-8 px-2 text-red-700 hover:text-red-800", form_class: "contents", title: "Blocks sign-in and ends their sessions. Can be undone." %>
       <% end %>
