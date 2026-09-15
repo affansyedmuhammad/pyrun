@@ -20,6 +20,10 @@ gem "tailwindcss-rails"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 
+# json 3.0 made JSON.parse options keyword-only, which Active Support 8.1.3 does not
+# yet pass, breaking every signed message (cookies, tokens). Pin until Rails catches up.
+gem "json", "< 3"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
