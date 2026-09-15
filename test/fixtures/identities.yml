@@ -1,0 +1,5 @@
+google_only_google:
+  user: google_only
+  provider: google
+  uid: "google-uid-1"
+  email_at_link: google.only@windbornesystems.com

@@ -1,0 +1,5 @@
+verified_laptop:
+  user: verified
+  ip_address: 10.0.0.1
+  user_agent: Laptop
+  login_method: password

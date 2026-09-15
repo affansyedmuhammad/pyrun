@@ -1,9 +1,27 @@
-<% password_digest = BCrypt::Password.create("password") %>
+# Password for every fixture with one: "correct horse battery staple"
+<% digest = BCrypt::Password.create("correct horse battery staple", cost: BCrypt::Engine::MIN_COST) %>
 
-one:
-  email_address: one@example.com
-  password_digest: <%= password_digest %>
+verified:
+  email_address: verified@windbornesystems.com
+  password_digest: <%= digest %>
+  email_verified_at: <%= 2.days.ago.iso8601 %>
 
-two:
-  email_address: two@example.com
-  password_digest: <%= password_digest %>
+unverified:
+  email_address: unverified@windbornesystems.com
+  password_digest: <%= digest %>
+
+admin:
+  email_address: admin@windbornesystems.com
+  password_digest: <%= digest %>
+  email_verified_at: <%= 2.days.ago.iso8601 %>
+
+google_only:
+  email_address: google.only@windbornesystems.com
+  password_digest: null
+  email_verified_at: <%= 2.days.ago.iso8601 %>
+
+disabled:
+  email_address: former@windbornesystems.com
+  password_digest: <%= digest %>
+  email_verified_at: <%= 30.days.ago.iso8601 %>
+  disabled_at: <%= 1.day.ago.iso8601 %>
