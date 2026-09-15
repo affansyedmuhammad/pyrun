@@ -11,9 +11,10 @@
         <%= f.select :runtime, Sandbox::Runtime.all.map { |r| [ r.label, r.key ] }, {}, class: "field-input" %>
       </div>
     <% end %>
+    <%# The textarea is the form field; code-editor swaps a CodeMirror editor in front of it. %>
     <%= f.field :code, as: :textarea, label: "Code", rows: 18, spellcheck: false, autofocus: true,
                 class: "min-h-[24rem] resize-y font-mono text-[13px] leading-5",
-                data: { controller: "code-editor", action: "keydown->code-editor#keydown" } %>
+                data: { controller: "code-editor" } %>
     <div class="flex items-center gap-4">
       <%= f.submit "Run" %>
       <span class="text-xs text-zinc-500">Ctrl or ⌘ + Enter also runs it.</span>

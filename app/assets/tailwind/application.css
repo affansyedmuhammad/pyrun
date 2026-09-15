@@ -64,6 +64,53 @@
     @apply text-sm text-red-700;
   }
 
+  /* Code editor (code-editor controller wraps CodeMirror around the textarea) */
+  .editor {
+    @apply overflow-hidden rounded-md border border-zinc-300 bg-white;
+  }
+  .editor:focus-within {
+    @apply border-zinc-900 ring-1 ring-zinc-900;
+  }
+  .editor .cm-editor {
+    @apply min-h-[24rem] text-[13px] leading-5;
+  }
+  .editor .cm-editor.cm-focused {
+    outline: none;
+  }
+  .editor .cm-scroller {
+    @apply font-mono;
+  }
+  .editor .cm-content {
+    @apply py-3;
+    caret-color: theme(--color-zinc-900);
+  }
+  .editor .cm-gutters {
+    @apply border-r border-zinc-200 bg-zinc-50 text-zinc-400;
+  }
+  .editor .cm-activeLineGutter {
+    @apply bg-zinc-100 text-zinc-600;
+  }
+  .editor .cm-activeLine {
+    @apply bg-zinc-50;
+  }
+  .editor .cm-selectionBackground,
+  .editor .cm-editor ::selection {
+    @apply bg-zinc-200;
+  }
+  .editor .cm-matchingBracket {
+    @apply rounded-sm bg-amber-100;
+  }
+  /* Token colours: one quiet palette, meaning only */
+  .editor .tok-keyword { @apply text-fuchsia-700; }
+  .editor .tok-string, .editor .tok-string2 { @apply text-emerald-700; }
+  .editor .tok-number { @apply text-amber-700; }
+  .editor .tok-comment { @apply italic text-zinc-400; }
+  .editor .tok-definition, .editor .tok-function { @apply text-blue-700; }
+  .editor .tok-typeName, .editor .tok-className, .editor .tok-builtin { @apply text-sky-700; }
+  .editor .tok-operator { @apply text-zinc-600; }
+  .editor .tok-punctuation { @apply text-zinc-500; }
+  .editor .tok-invalid { @apply text-red-700; }
+
   /* Password checklist (users/_password_rules) */
   .rules {
     @apply grid gap-1 text-sm text-zinc-500 sm:grid-cols-2;
