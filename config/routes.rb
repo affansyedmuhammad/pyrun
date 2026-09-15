@@ -22,6 +22,9 @@ Rails.application.routes.draw do
     resources :runs, only: :index
   end
 
+  # Development only: every mail the app sends lands here instead of an SMTP server.
+  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+
   # Health check for load balancers and uptime monitors. Unauthenticated, says only 200.
   get "up" => "rails/health#show", as: :rails_health_check
 end
