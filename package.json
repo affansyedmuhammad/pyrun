@@ -1,0 +1,8 @@
+{
+  "name": "pyrun-system-tests",
+  "private": true,
+  "description": "Only here to pin the Playwright driver that the Rails system tests use.",
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
