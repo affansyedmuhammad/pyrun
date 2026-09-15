@@ -20,7 +20,7 @@ class SignupTest < ApplicationSystemTestCase
     visit path_from_mail(ActionMailer::Base.deliveries.last, "/verify-email/")
     assert_text "Email verified"
     assert_text "No runs yet"
-    assert_selector "header", text: "new.person@windbornesystems.com"
+    assert_selector "aside", text: "new.person@windbornesystems.com"
   end
 
   test "an address outside the company is refused inline" do
