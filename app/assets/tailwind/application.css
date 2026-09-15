@@ -64,6 +64,22 @@
     @apply text-sm text-red-700;
   }
 
+  /* Password checklist (users/_password_rules) */
+  .rules {
+    @apply grid gap-1 text-sm text-zinc-500 sm:grid-cols-2;
+  }
+  .rules li::before {
+    content: "\25CB"; /* white circle */
+    @apply mr-2 inline-block w-3 text-zinc-400;
+  }
+  .rules li[data-met="true"] {
+    @apply text-emerald-700;
+  }
+  .rules li[data-met="true"]::before {
+    content: "\2713"; /* check mark */
+    @apply text-emerald-600;
+  }
+
   /* Flash messages */
   .flash {
     @apply mb-6 rounded-md border px-3 py-2 text-sm;

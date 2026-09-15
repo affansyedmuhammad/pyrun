@@ -2,6 +2,16 @@ class User < ApplicationRecord
   PASSWORD_MIN_LENGTH = 12
   PASSWORD_MAX_BYTES = 72 # bcrypt reads no further
 
+  # Composition rules. The same patterns drive the checklist on the signup and
+  # reset forms (app/views/users/_password_rules.html.erb), so the two cannot drift.
+  # Unicode-aware, and valid in both Ruby and JavaScript with the "u" flag.
+  PASSWORD_RULES = {
+    uppercase: /\p{Lu}/,
+    lowercase: /\p{Ll}/,
+    digit:     /\p{Nd}/,
+    special:   /[^\p{L}\p{N}\s]/
+  }.freeze
+
   # Validations are declared explicitly below so that a missing password is a
   # deliberate state (an account that signs in through an external identity)
   # rather than an accident. See docs/DESIGN.md §4.2.
@@ -16,6 +26,7 @@ class User < ApplicationRecord
   validates :email_address, presence: true, format: { with: EmailPolicy::FORMAT }, uniqueness: true
   validates :password, length: { minimum: PASSWORD_MIN_LENGTH }, confirmation: true, allow_nil: true
   validate :password_fits_bcrypt
+  validate :password_meets_composition_rules
   validate :password_is_not_the_email_address
   validate :has_a_login_method
 
@@ -51,6 +62,13 @@ class User < ApplicationRecord
     def password_fits_bcrypt
       return if password.nil? || password.bytesize <= PASSWORD_MAX_BYTES
       errors.add(:password, :too_long_bytes, count: PASSWORD_MAX_BYTES)
+    end
+
+    def password_meets_composition_rules
+      return if password.nil?
+      PASSWORD_RULES.each do |name, pattern|
+        errors.add(:password, :"missing_#{name}") unless password.match?(pattern)
+      end
     end
 
     def password_is_not_the_email_address

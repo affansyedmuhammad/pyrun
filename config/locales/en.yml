@@ -5,7 +5,7 @@ en:
     domain_restricted: "Sign-ups are limited to %{domains} addresses."
   sessions:
     create:
-      failed: "Try another email address or password."
+      failed: "Incorrect email or password."
     destroy:
       signed_out: "You have been signed out."
   email_verifications:
@@ -27,6 +27,12 @@ en:
         one: "You already have 1 run waiting or running. Wait for it to finish."
         other: "You already have %{count} runs waiting or running. Wait for one to finish."
       queue_full: "The queue is busy right now. Try again in a minute."
+  password_rules:
+    length: "At least %{count} characters"
+    uppercase: "An uppercase letter"
+    lowercase: "A lowercase letter"
+    digit: "A number"
+    special: "A special character"
   user_mailer:
     email_verification:
       subject: "Verify your email address"
@@ -46,6 +52,10 @@ en:
               too_short: "must be at least %{count} characters"
               too_long_bytes: "must be at most %{count} bytes"
               is_email: "can't be your email address"
+              missing_uppercase: "must include an uppercase letter"
+              missing_lowercase: "must include a lowercase letter"
+              missing_digit: "must include a number"
+              missing_special: "must include a special character"
             password_confirmation:
               confirmation: "doesn't match the password"
         run:

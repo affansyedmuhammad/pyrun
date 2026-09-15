@@ -5,4 +5,7 @@
 <% else %>
   <p class="auth-lede">Open the link in the message we sent you to finish setting up your account. The link works for 24 hours.</p>
 <% end %>
-<p class="auth-foot">Didn't get it? <%= link_to "Sign in", login_path, class: "link" %> and you can send it again.</p>
+<div class="mt-8 flex flex-col gap-3">
+  <%= button_to "Send it again", email_verifications_path, class: "btn btn-secondary w-full", form_class: "contents" %>
+</div>
+<p class="auth-foot">Didn't get it? Check your spam folder, or send it again above. Already verified? <%= link_to "Sign in", login_path, class: "link" %>.</p>

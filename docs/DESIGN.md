@@ -242,7 +242,9 @@ Everything else sits behind `require_authentication` and `require_verified_email
      This reveals the allowlist, which is the company's own domain and not a secret.
      The attempt is logged with IP.
    - Validate the password: 12 to 72 characters, confirmation matches, not equal to the
-     email. No composition rules, per NIST 800-63B. A HaveIBeenPwned range check is a
+     email, and (a product decision taken after the first build) an uppercase letter, a
+     lowercase letter, a number, and a special character. The form shows a live checklist
+     driven by the same rules the model enforces. A HaveIBeenPwned range check is a
      one-gem addition behind a flag, off by default because it needs outbound network
      from the web process.
    - If the address already has an account: show the **same** "check your inbox" page as

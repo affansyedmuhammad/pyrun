@@ -1,6 +1,5 @@
 <% content_for :title, "Sign in" %>
 <h1 class="auth-title">Sign in</h1>
-<p class="auth-lede">Use your <%= EmailPolicy.allowed_domains.to_sentence %> account.</p>
 
 <%= form_with url: login_path, class: "mt-8 space-y-5" do |f| %>
   <%= f.field :email_address, as: :email, label: "Email", value: @email_address, autofocus: true, autocomplete: "email", required: true %>

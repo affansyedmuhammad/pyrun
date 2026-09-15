@@ -14,7 +14,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
 
   test "the signup page lists every password rule for the live checklist" do
     get signup_path
-    assert_select "ul.rules[data-controller=password-rules]" do
+    assert_select "[data-controller=password-rules] ul.rules" do
       assert_select "li[data-password-rules-target=rule]", User::PASSWORD_RULES.size + 1
       assert_select "li[data-min-length=?]", User::PASSWORD_MIN_LENGTH.to_s, text: /12 characters/
       assert_select "li[data-pattern]", User::PASSWORD_RULES.size
