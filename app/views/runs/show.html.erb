@@ -12,12 +12,12 @@
 
   <dl class="meta">
     <div><dt>Run</dt><dd>#<%= @run.id %></dd></div>
-    <% if @run.user_id != Current.user.id %><div><dt>Owner</dt><dd><%= @run.user.email_address %></dd></div><% end %>
+    <% if @run.user_id != Current.user.id %><div class="col-span-2"><dt>Owner</dt><dd class="break-all"><%= @run.user.email_address %></dd></div><% end %>
     <div><dt>Submitted</dt><dd><%= relative_time(@run.created_at) %></dd></div>
     <div><dt>Duration</dt><dd><%= format_duration(@run.duration_ms) %></dd></div>
     <div><dt>Exit code</dt><dd><%= @run.exit_code.nil? ? "—" : @run.exit_code %></dd></div>
     <div><dt>Runtime</dt><dd><%= @run.runtime_definition.label %></dd></div>
-    <div><dt>Limits</dt><dd><%= distance_of_time_in_words(@run.timeout_seconds) %> · <%= @run.memory_mb %> MB · <%= cpus_phrase(@run.cpus.to_f) %></dd></div>
+    <div class="col-span-2"><dt>Limits</dt><dd class="whitespace-nowrap"><%= distance_of_time_in_words(@run.timeout_seconds) %> · <%= @run.memory_mb %> MB · <%= cpus_phrase(@run.cpus.to_f) %></dd></div>
   </dl>
 
   <section class="mt-8">
