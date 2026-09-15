@@ -123,6 +123,29 @@ class UserTest < ActiveSupport::TestCase
     assert_nil User.authenticate_by(email_address: users(:google_only).email_address, password: PASSWORD)
   end
 
+  test "admin? is granted by the admin role or by the configured list, and knows which" do
+    user = users(:verified)
+    assert_not user.admin?
+    user.make_admin!
+    assert user.reload.admin?
+    assert_equal "admin", user.role
+    assert_not user.admin_from_config?
+    user.remove_admin!
+    assert_not user.reload.admin?
+
+    with_config(admin_emails: [ user.email_address ]) do
+      assert user.admin?
+      assert user.admin_from_config?
+    end
+  end
+
+  test "role must be member or admin" do
+    user = users(:verified)
+    user.role = "overlord"
+    assert_not user.valid?
+    assert_includes user.errors[:role], "is not included in the list"
+  end
+
   test "admin? and can_view_all_runs? follow the configured admin list" do
     with_config(admin_emails: [ "admin@windbornesystems.com" ]) do
       assert users(:admin).admin?

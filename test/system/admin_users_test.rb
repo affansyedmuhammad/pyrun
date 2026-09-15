@@ -36,6 +36,17 @@ class AdminUsersTest < ApplicationSystemTestCase
       assert_text "Reactivated verified@windbornesystems.com"
 
       within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
+        assert_no_text "Admin"
+        click_button "Make admin"
+      end
+      assert_text "verified@windbornesystems.com is now an admin"
+      within(:xpath, "//tr[td[contains(normalize-space(.), 'verified@windbornesystems.com') and not(contains(., 'unverified'))]]") do
+        assert_text "Admin"
+        click_button "Remove admin"
+      end
+      assert_text "verified@windbornesystems.com is no longer an admin"
+
+      within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
         click_button "Reset password"
       end
       assert_text "Sent a password reset link to verified@windbornesystems.com"

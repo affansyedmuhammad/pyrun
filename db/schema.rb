@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_020000) do
   create_table "identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_at_link"
@@ -72,8 +72,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_010000) do
     t.datetime "last_signed_in_at"
     t.string "name"
     t.string "password_digest"
+    t.string "role", default: "member", null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.index ["role"], name: "index_users_on_role"
   end
 
   add_foreign_key "identities", "users"

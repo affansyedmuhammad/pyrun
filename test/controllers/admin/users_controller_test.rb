@@ -150,12 +150,77 @@ module Admin
         deactivate_admin_user_path(users(:verified)) => "Deactivate",
         sessions_admin_user_path(users(:verified)) => "Sign out everywhere",
         password_reset_admin_user_path(users(:verified)) => "Reset password",
+        make_admin_admin_user_path(users(:verified)) => "Make admin",
         reactivate_admin_user_path(users(:disabled)) => "Reactivate"
       }.each do |action, label|
         assert_select "form[action=?] button[aria-label=?][title]", action, label do
           assert_select "svg[aria-hidden=true]"
         end
       end
+    end
+
+    test "making a member an admin sets the role and is logged" do
+      user = users(:verified)
+      as_admin do
+        assert_logged(/admin\.user_made_admin admin=#{@admin.id} user=#{user.id}/) do
+          post make_admin_admin_user_path(user)
+        end
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-notice", /verified@windbornesystems\.com is now an admin/
+      end
+      assert user.reload.admin?
+      assert_equal "admin", user.role
+    end
+
+    test "removing admin access sets the role back and is logged" do
+      user = users(:verified)
+      user.make_admin!
+      as_admin do
+        assert_logged(/admin\.user_admin_removed admin=#{@admin.id} user=#{user.id}/) do
+          post remove_admin_admin_user_path(user)
+        end
+        assert_redirected_to admin_users_path
+      end
+      assert_not user.reload.admin?
+    end
+
+    test "an admin cannot remove their own admin access" do
+      @admin.make_admin!
+      as_admin do
+        post remove_admin_admin_user_path(@admin)
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-alert", /your own admin access/
+      end
+      assert @admin.reload.admin?
+    end
+
+    test "admin access granted by config cannot be removed from the page" do
+      user = users(:verified)
+      with_config(admin_emails: [ @admin.email_address, user.email_address ]) do
+        sign_in_as @admin
+        post remove_admin_admin_user_path(user)
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-alert", /ADMIN_EMAILS/
+        assert user.reload.admin?
+
+        get admin_users_path
+        assert_select "form[action=?]", remove_admin_admin_user_path(user), count: 0
+        assert_select "tr", /verified@windbornesystems\.com/ do
+          assert_select ".tag[title*=?]", "ADMIN_EMAILS", text: "Admin"
+        end
+      end
+    end
+
+    test "the row offers Make admin to members and Remove admin to role admins" do
+      users(:google_only).make_admin!
+      as_admin { get admin_users_path }
+      assert_select "form[action=?] button[aria-label=?]", make_admin_admin_user_path(users(:verified)), "Make admin"
+      assert_select "form[action=?] button[aria-label=?]", remove_admin_admin_user_path(users(:google_only)), "Remove admin"
+      assert_select "form[action=?]", make_admin_admin_user_path(users(:google_only)), count: 0
+      assert_select "form[action=?]", make_admin_admin_user_path(users(:disabled)), count: 0
     end
 
     test "an admin cannot deactivate their own account" do
