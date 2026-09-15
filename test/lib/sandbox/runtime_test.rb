@@ -1,5 +1,4 @@
 require "test_helper"
-require "minitest/mock"
 
 module Sandbox
   class RuntimeTest < ActiveSupport::TestCase
@@ -29,9 +28,11 @@ module Sandbox
     end
 
     test "an entry can pin its own image" do
-      Runtime.stub :registry, { "py" => { "label" => "Py", "image" => "pinned:1", "command" => [ "python3" ] } } do
+      Runtime.with_registry("py" => { "label" => "Py", "image" => "pinned:1", "command" => [ "python3" ] }) do
         assert_equal "pinned:1", Runtime.find("py").image
+        assert_equal [ "py" ], Runtime.keys
       end
+      assert_equal [ "python3.12" ], Runtime.keys
     end
   end
 end

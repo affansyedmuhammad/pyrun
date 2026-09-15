@@ -12,6 +12,14 @@ module Sandbox
         @registry ||= YAML.safe_load_file(Rails.root.join("config/sandbox_runtimes.yml")).freeze
       end
 
+      # Swap the registry for the duration of a block (tests only).
+      def with_registry(entries)
+        previous, @registry = @registry, entries.freeze
+        yield
+      ensure
+        @registry = previous
+      end
+
       def keys = registry.keys
       def all = registry.map { |key, entry| build(key, entry) }
       def default = all.first
