@@ -37,7 +37,8 @@ module Pyrun
       runs_paused:                [ "RUNS_PAUSED",                :boolean,     false ],
       retention_days:             [ "RETENTION_DAYS",             :non_negative_int, 0 ],
       run_rate_limit:             [ "RUN_RATE_LIMIT",             :rate_limit,  [ 20, 60 ] ],
-      request_rate_limit:         [ "REQUEST_RATE_LIMIT",         :rate_limit,  [ 300, 60 ] ]
+      request_rate_limit:         [ "REQUEST_RATE_LIMIT",         :rate_limit,  [ 300, 60 ] ],
+      signup_rate_limit:          [ "SIGNUP_RATE_LIMIT",          :rate_limit,  [ 30, 3600 ] ]
     }.freeze
 
     REDACTED = %i[smtp_password].freeze
@@ -73,6 +74,8 @@ module Pyrun
 
     def run_rate_limit_count = run_rate_limit[0]
     def run_rate_limit_period = run_rate_limit[1].seconds
+    def signup_rate_limit_count = signup_rate_limit[0]
+    def signup_rate_limit_period = signup_rate_limit[1].seconds
 
     # Settings that must be present or safe in production; the boot initializer
     # refuses to start if any hold. See docs/SECURITY-REVIEW.md findings 5 and 10.

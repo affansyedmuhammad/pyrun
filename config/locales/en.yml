@@ -3,6 +3,7 @@
 en:
   registrations:
     domain_restricted: "Sign-ups are limited to %{domains} addresses."
+    rate_limited: "Sign-ups are busy right now. Please try again in a little while."
   sessions:
     create:
       failed: "Incorrect email or password."

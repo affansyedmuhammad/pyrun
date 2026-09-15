@@ -3,10 +3,12 @@ module Users
   # call it later. The allowlist check lives here so no entry point can skip it.
   class Register
     Result = Data.define(:status, :user, :error) do
-      %i[created existing rejected invalid].each do |name|
+      %i[created existing rejected invalid limited].each do |name|
         define_method(:"#{name}?") { status == name }
       end
     end
+
+    GLOBAL_SIGNUP_KEY = "signups:global"
 
     def self.call(**) = new(**).call
 
@@ -22,10 +24,26 @@ module Users
       existing = User.find_by(email_address: @email_address)
       return Result.new(:existing, existing, nil) if existing
 
+      # Only genuine new-account attempts (allowed domain, not already registered)
+      # consume the global budget, so a flood of rejected or existing addresses
+      # can never lock out real sign-ups. See docs/SECURITY-REVIEW.md finding 2.
+      return limited unless within_global_signup_budget?
+
       create
     end
 
     private
+      def within_global_signup_budget?
+        config = Pyrun.config
+        count = Rails.cache.increment(GLOBAL_SIGNUP_KEY, 1, expires_in: config.signup_rate_limit_period)
+        count.nil? || count <= config.signup_rate_limit_count
+      end
+
+      def limited
+        Rails.logger.warn "auth.signup_rate_limited email=#{@email_address.inspect}"
+        Result.new(:limited, nil, I18n.t("registrations.rate_limited"))
+      end
+
       def create
         user = User.new(email_address: @email_address, password: @password, password_confirmation: @password_confirmation)
         user.save ? Result.new(:created, user, nil) : Result.new(:invalid, user, nil)

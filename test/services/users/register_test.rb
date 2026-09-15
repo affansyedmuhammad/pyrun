@@ -52,5 +52,28 @@ module Users
       result = Register.call(email_address: "outsider@example.com", password: "short", password_confirmation: "nope")
       assert result.rejected?
     end
+
+    test "refuses to create beyond the global signup budget, and sends no mail" do
+      with_config(signup_rate_limit: [ 1, 3600 ]) do
+        first = Register.call(email_address: "a.new@windbornesystems.com", password: PASSWORD, password_confirmation: PASSWORD)
+        assert first.created?
+
+        second = nil
+        assert_no_difference "User.count" do
+          second = Register.call(email_address: "b.new@windbornesystems.com", password: PASSWORD, password_confirmation: PASSWORD)
+        end
+        assert second.limited?
+        assert_nil second.user
+      end
+    end
+
+    test "rejected and existing addresses do not consume the signup budget" do
+      with_config(signup_rate_limit: [ 1, 3600 ]) do
+        Register.call(email_address: "outsider@example.com", password: PASSWORD, password_confirmation: PASSWORD)      # rejected
+        Register.call(email_address: users(:verified).email_address, password: PASSWORD, password_confirmation: PASSWORD) # existing
+        result = Register.call(email_address: "genuinely.new@windbornesystems.com", password: PASSWORD, password_confirmation: PASSWORD)
+        assert result.created?, "a real new signup must still go through after only rejected/existing attempts"
+      end
+    end
   end
 end

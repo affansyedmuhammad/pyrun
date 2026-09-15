@@ -30,6 +30,10 @@ class RegistrationsController < ApplicationController
       @user = User.new(registration_params)
       @user.errors.add(:email_address, result.error)
       render :new, status: :unprocessable_content
+    when :limited
+      @user = User.new(registration_params)
+      flash.now[:alert] = result.error
+      render :new, status: :too_many_requests
     end
   end
 

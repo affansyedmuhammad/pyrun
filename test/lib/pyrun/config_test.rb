@@ -27,6 +27,8 @@ module Pyrun
       assert_equal 0, c.retention_days
       assert_equal 20, c.run_rate_limit_count
       assert_equal 1.minute, c.run_rate_limit_period
+      assert_equal 30, c.signup_rate_limit_count
+      assert_equal 1.hour, c.signup_rate_limit_period
       assert_equal 300, c.request_rate_limit_count
       assert_equal 1.minute, c.request_rate_limit_period
     end

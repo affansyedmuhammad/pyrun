@@ -131,6 +131,20 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :too_many_requests
   end
 
+  test "signup is globally rate limited across addresses and IPs" do
+    with_config(signup_rate_limit: [ 1, 3600 ]) do
+      sign_up "first.new@windbornesystems.com" # consumes the only slot
+      assert_redirected_to check_inbox_path
+      assert_no_enqueued_emails do
+        assert_no_difference "User.count" do
+          sign_up "second.new@windbornesystems.com"
+        end
+      end
+      assert_response :too_many_requests
+      assert_select ".flash-alert", /busy right now/
+    end
+  end
+
   private
     def sign_up(email, password: PASSWORD)
       post signup_path, params: { user: { email_address: email, password: password, password_confirmation: password } }
