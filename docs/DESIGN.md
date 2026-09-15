@@ -765,6 +765,8 @@ is never marked `html_safe`.
 | `MAX_CODE_BYTES` | `65536` | Submission size cap |
 | `MAX_ACTIVE_RUNS_PER_USER` | `5` | Queued + running cap |
 | `RUN_RATE_LIMIT` | `20/1m` | Submissions per user |
+| `SIGNUP_RATE_LIMIT` | `30/1h` | Global new-account budget (on top of the per-IP limit) |
+| `HOST_CPUS` | (none) | Host vCPUs; with `HOST_MEMORY_MB`, required in production so sandbox capacity is validated |
 | `SANDBOX_RUNNER` | `docker` | `docker` or `fake` |
 | `RETENTION_DAYS` | `0` | Clear stdout/stderr on runs older than this; 0 keeps forever |
 | `MAX_QUEUE_DEPTH` | `200` | Refuse new submissions above this many queued runs, with a clear message |

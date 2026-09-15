@@ -6,6 +6,14 @@ server plus code review. This lists what held up and what did not, ranked by
 severity, each with evidence and a suggested fix. Nothing here was changed in
 code; it is a to-do list.
 
+**Resolution status (updated after fixes).** Findings 1, 2, 5, 9, and 10 are
+fixed and each was re-verified by re-running the original attack against a live
+server (token no longer in logs; distributed signup flood returns 429 past a
+global budget; production refuses to boot without host limits or with
+verification off; `/\evil.com` return targets rejected). Findings 3 and 4 are
+deliberately deferred (fair-scheduling / Postgres — see 12a); 7, 8, 11 remain as
+roadmap or accepted trade-offs.
+
 Severity: **High** = exploitable now with real impact. **Medium** = real weakness,
 needs a plausible precondition. **Low** = hardening or dev-only. **Info** = accepted
 trade-off worth stating.
@@ -43,7 +51,7 @@ trade-off worth stating.
 
 ## Findings
 
-### 1. Reset and verification tokens are written to the request log — Medium
+### 1. Reset and verification tokens are written to the request log — Medium  ✔ fixed
 **What.** The password-reset link is `/passwords/<token>/edit` and the
 verification link is `/verify-email/<token>`. The token is a *path segment*, and
 `config.filter_parameters` only filters request *parameters*, so the full token
@@ -61,7 +69,7 @@ scrub `/(passwords|verify-email)/[^/]+` from the logged path with a small
 `config.log_tags` / request-log filter. At minimum, shorten token lifetimes and
 document that logs are secret-bearing.
 
-### 2. Signup creates an account and sends mail for any address on the domain, before inbox control is proven — Medium
+### 2. Signup creates an account and sends mail for any address on the domain, before inbox control is proven — Medium  ✔ fixed
 **What.** `POST /signup` with any syntactically valid `@windbornesystems.com`
 address passes `EmailPolicy`, creates a `User` row, and enqueues a verification
 email. Rate limit is 10 per 15 min per IP.
@@ -103,7 +111,7 @@ plans; at minimum split the queue/cache/cable onto separate SQLite files (partly
 done) and enable WAL with a longer busy timeout, and back up/restore-test the
 volume.
 
-### 5. The memory safety check is off by default, and CPU is never validated — Low–Medium (availability)
+### 5. The memory safety check is off by default, and CPU is never validated — Low–Medium (availability)  ✔ fixed
 **What.** Boot validation raises only when
 `SANDBOX_CONCURRENCY × SANDBOX_MEMORY_MB > HOST_MEMORY_MB`, and `HOST_MEMORY_MB`
 defaults to `nil`, so the check is skipped unless explicitly set. CPU
@@ -145,7 +153,7 @@ verification link and take over accounts. The probe server here was bound to
 **Fix.** Keep the dev server on loopback; optionally gate `/dev/mail` behind a
 basic check even in development. No production exposure today.
 
-### 9. The open-redirect guard is weak against backslashes — Low (latent)
+### 9. The open-redirect guard is weak against backslashes — Low (latent)  ✔ fixed
 **What.** `safe_return_path` accepts a target that starts with `/` and not `//`.
 `"/\\evil.com"` passes the guard, and browsers normalize the backslash so the
 redirect would leave the origin.
@@ -156,7 +164,7 @@ changes.
 **Fix.** Validate with a stricter rule (reject any `\`, or parse with `URI` and
 require a relative path with no host), rather than a `start_with?` check.
 
-### 10. `REQUIRE_EMAIL_VERIFICATION=false` is a foot-gun — Low
+### 10. `REQUIRE_EMAIL_VERIFICATION=false` is a foot-gun — Low  ✔ fixed
 **What.** The escape hatch, if ever set in production, lets anyone who can type a
 `@windbornesystems.com` address use the app without proving inbox control.
 **Impact.** Defeats finding-2's only compensating control (the verification
