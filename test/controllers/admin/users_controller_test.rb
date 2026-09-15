@@ -144,6 +144,20 @@ module Admin
       assert_select "form[action=?]", password_reset_admin_user_path(users(:disabled)), count: 0
     end
 
+    test "actions are icon buttons that keep an accessible name and a hover title" do
+      as_admin { get admin_users_path }
+      {
+        deactivate_admin_user_path(users(:verified)) => "Deactivate",
+        sessions_admin_user_path(users(:verified)) => "Sign out everywhere",
+        password_reset_admin_user_path(users(:verified)) => "Reset password",
+        reactivate_admin_user_path(users(:disabled)) => "Reactivate"
+      }.each do |action, label|
+        assert_select "form[action=?] button[aria-label=?][title]", action, label do
+          assert_select "svg[aria-hidden=true]"
+        end
+      end
+    end
+
     test "an admin cannot deactivate their own account" do
       as_admin do
         post deactivate_admin_user_path(@admin)

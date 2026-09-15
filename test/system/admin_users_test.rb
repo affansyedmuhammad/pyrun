@@ -31,6 +31,11 @@ class AdminUsersTest < ApplicationSystemTestCase
       assert_text "Reactivated verified@windbornesystems.com"
 
       within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
+        click_button "Sign out everywhere"
+      end
+      assert_text "Signed verified@windbornesystems.com out everywhere"
+
+      within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
         click_button "Reset password"
       end
       assert_text "Sent a password reset link to verified@windbornesystems.com"
