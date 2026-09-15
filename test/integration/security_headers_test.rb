@@ -18,6 +18,16 @@ class SecurityHeadersTest < ActionDispatch::IntegrationTest
     assert_select "script[type=importmap][nonce=?]", nonce
   end
 
+  test "the nonce stays the same across a session, so Turbo visits keep working" do
+    sign_in_as users(:verified)
+    get runs_path
+    first = response.headers["Content-Security-Policy"][/'nonce-([^']+)'/, 1]
+    get new_run_path
+    second = response.headers["Content-Security-Policy"][/'nonce-([^']+)'/, 1]
+    assert first.present?
+    assert_equal first, second
+  end
+
   test "the usual hardening headers are set" do
     get login_path
     assert_equal "nosniff", response.headers["X-Content-Type-Options"]

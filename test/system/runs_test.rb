@@ -45,6 +45,19 @@ class RunsTest < ApplicationSystemTestCase
     assert_operator width.to_f, :>, 0
   end
 
+  test "the editor is styled after a Turbo navigation, not only after a full load" do
+    sign_in users(:verified)
+    click_link "New run" # a Turbo visit: the document keeps the CSP of the page it was loaded with
+    assert_selector ".cm-editor .cm-gutter", text: "1"
+    display = page.evaluate_script("getComputedStyle(document.querySelector('.cm-editor')).display")
+    assert_equal "flex", display, "CodeMirror's base styles were rejected by the CSP after the visit"
+
+    visit runs_path
+    click_link "New run"
+    assert_selector ".cm-editor .cm-gutter", text: "1"
+    assert_equal "flex", page.evaluate_script("getComputedStyle(document.querySelector('.cm-editor')).display")
+  end
+
   test "the editor highlights Python, indents after a colon, indents with Tab, and submits with Cmd+Enter" do
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)
