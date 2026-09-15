@@ -207,6 +207,35 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "every row has an explicit Open link" do
+    sign_in_as @user
+    get runs_path
+    assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed)), text: "Open"
+  end
+
+  test "a run opened from the all-runs list goes back to All runs and its pager walks that list" do
+    with_config(admin_emails: [ users(:admin).email_address ]) do
+      sign_in_as users(:admin)
+      get run_path(runs(:admin_succeeded), from: "all") # the admin's own run, but reached from All runs
+      assert_select "a[href=?]", admin_runs_path, text: /Back to all runs/
+      assert_select "[data-controller=run-navigation][data-run-navigation-newer-value=?][data-run-navigation-older-value='']",
+                    run_path(runs(:verified_succeeded), from: "all")
+      assert_select "a[href=?]", run_path(runs(:verified_succeeded), from: "all"), text: /Newer/
+
+      get run_path(runs(:admin_succeeded)) # reached from their own Runs page
+      assert_select "a[href=?]", runs_path, text: /Back to runs/
+      assert_select "[data-controller=run-navigation][data-run-navigation-newer-value=''][data-run-navigation-older-value='']"
+    end
+  end
+
+  test "a member cannot widen their pager with from=all" do
+    sign_in_as @user
+    get run_path(runs(:verified_succeeded), from: "all")
+    assert_select "a[href=?]", runs_path, text: /Back to runs/
+    assert_select "a[href=?]", run_path(runs(:admin_succeeded), from: "all"), count: 0
+    assert_select "[data-run-navigation-older-value='']"
+  end
+
   test "the run page links to the newer and older runs in my list" do
     sign_in_as @user
     get run_path(runs(:verified_failed))

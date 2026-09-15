@@ -154,6 +154,13 @@ class RunsTest < ApplicationSystemTestCase
       fill_in "Owner", with: "verified@"
       click_button "Filter"
       assert_selector "tbody tr", count: 3
+
+      within(:xpath, "//tr[contains(., \"raise RuntimeError('boom')\")]") { click_link "Open" }
+      assert_selector "h1", text: "Failed"
+      assert_text "verified@windbornesystems.com"
+      click_link "Back to all runs"
+      assert_selector "h1", text: "All runs"
+      assert_current_path admin_runs_path
     end
   end
 

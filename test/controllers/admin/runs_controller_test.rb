@@ -33,6 +33,15 @@ module Admin
       assert_match(/admin@windbornesystems\.com/, rows.last.text)
     end
 
+    test "each row opens the run with a marker so it comes back to All runs" do
+      with_config(admin_emails: [ users(:admin).email_address ]) do
+        sign_in_as users(:admin)
+        get admin_runs_path
+        assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed), from: "all"), text: "Open"
+        assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed), from: "all"), text: /raise RuntimeError/
+      end
+    end
+
     test "admins can filter by owner and status" do
       with_config(admin_emails: [ users(:admin).email_address ]) do
         sign_in_as users(:admin)
