@@ -7,7 +7,12 @@
       <h1 class="page-title status"><%= status_dot(@run) %><%= status_label(@run) %></h1>
       <p class="mt-1.5 text-sm text-zinc-500"><%= status_explanation(@run) %></p>
     </div>
-    <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
+    <% if @run.finished? %>
+      <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
+    <% else %>
+      <%# Re-enabled by the Turbo refresh that arrives when the worker finishes. %>
+      <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Available once this run finishes">Run again</button>
+    <% end %>
   </div>
 
   <%= render "runs/progress", run: @run unless @run.finished? %>
