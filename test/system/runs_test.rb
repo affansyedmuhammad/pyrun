@@ -9,7 +9,7 @@ class RunsTest < ApplicationSystemTestCase
 
     click_link "New run"
     assert_selector "h1", text: "New run"
-    fill_in "Code", with: "print('hello from the sandbox')"
+    fill_in_code "print('hello from the sandbox')"
     click_button "Run"
 
     assert_selector "h1", text: "Queued"
@@ -45,16 +45,28 @@ class RunsTest < ApplicationSystemTestCase
     assert_operator width.to_f, :>, 0
   end
 
-  test "the editor indents with Tab and submits with Cmd+Enter" do
+  test "the editor highlights Python, indents after a colon, indents with Tab, and submits with Cmd+Enter" do
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)
     visit new_run_path
-    editor = find_field("Code")
-    editor.send_keys("if True:", :enter, :tab, "print(1)")
-    assert_equal "if True:\n  print(1)", editor.value
+    assert_selector ".cm-editor .cm-gutter", text: "1"
+
+    fill_in_code "import os"
+    assert_selector ".cm-content .tok-keyword", text: "import"
+
+    editor = find(".cm-content")
+    editor.send_keys([ :meta, "a" ], :backspace)
+    editor.send_keys("if True:", :enter, "pass")
+    assert_equal "if True:\n    pass", find("textarea[name='run[code]']", visible: :all).value
+
+    editor.send_keys([ :meta, "a" ], :backspace)
+    editor.send_keys("x = 1", :enter, :tab, "y = 'z'")
+    assert_equal "x = 1\n    y = 'z'", find("textarea[name='run[code]']", visible: :all).value
+    assert_selector ".cm-content .tok-string", text: "'z'"
 
     editor.send_keys([ :meta, :enter ])
     assert_selector "h1", text: "Queued"
+    assert_selector "pre", text: "x = 1\n    y = 'z'"
   end
 
   test "past runs are listed and can be opened, and a run can be run again" do
@@ -67,7 +79,7 @@ class RunsTest < ApplicationSystemTestCase
 
     click_link "Run again"
     assert_selector "h1", text: "New run"
-    assert_field "Code", with: "raise RuntimeError('boom')"
+    assert_selector ".cm-content", text: "raise RuntimeError('boom')"
   end
 
   test "an admin can browse everyone's runs" do
@@ -85,6 +97,14 @@ class RunsTest < ApplicationSystemTestCase
   end
 
   private
+    # The textarea is hidden behind the CodeMirror editor; type where a person would.
+    def fill_in_code(text)
+      editor = find(".cm-content")
+      editor.click
+      editor.send_keys([ :meta, "a" ], :backspace)
+      editor.send_keys(text)
+    end
+
     def sign_in(user)
       visit login_path
       fill_in "Email", with: user.email_address
