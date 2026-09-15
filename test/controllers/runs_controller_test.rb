@@ -193,6 +193,20 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[disabled]", count: 0
   end
 
+  test "the run page links back to my runs, or to all runs when an admin views someone else's" do
+    sign_in_as @user
+    get run_path(runs(:verified_failed))
+    assert_select "a[href=?]", runs_path, text: /Back to runs/
+
+    with_config(admin_emails: [ users(:admin).email_address ]) do
+      sign_in_as users(:admin)
+      get run_path(runs(:verified_failed))
+      assert_select "a[href=?]", admin_runs_path, text: /Back to all runs/
+      get run_path(runs(:admin_succeeded))
+      assert_select "a[href=?]", runs_path, text: /Back to runs/
+    end
+  end
+
   test "the run page links to the newer and older runs in my list" do
     sign_in_as @user
     get run_path(runs(:verified_failed))
