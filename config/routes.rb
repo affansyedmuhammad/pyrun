@@ -22,8 +22,12 @@ Rails.application.routes.draw do
     resources :runs, only: :index
   end
 
-  # Development only: every mail the app sends lands here instead of an SMTP server.
-  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+  if Rails.env.local?
+    # Development inbox for every mail the app sends (lib/dev_mailbox.rb). Never in production.
+    get    "dev/mail",     to: "dev/mail#index", as: :dev_mail
+    get    "dev/mail/:id", to: "dev/mail#show",  as: :dev_mail_message
+    delete "dev/mail",     to: "dev/mail#clear"
+  end
 
   # Health check for load balancers and uptime monitors. Unauthenticated, says only 200.
   get "up" => "rails/health#show", as: :rails_health_check

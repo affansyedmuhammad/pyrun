@@ -391,7 +391,7 @@ cache because the check runs on every request. No call site changes.
 
 | Environment | Delivery |
 |---|---|
-| development | `letter_opener_web`. Every mail appears at `/letter_opener`. No SMTP, nothing to configure. |
+| development | Written to `tmp/dev_mailbox` by a tiny delivery method and shown at `/dev/mail`, an inbox in the app's own design. No SMTP, nothing to configure. |
 | test | `:test` delivery, `assert_enqueued_email_with`. |
 | production | SMTP from env (`SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`). Zero-DNS option: a Gmail account with an app password, which delivers to any recipient at demo volume. Better if a domain is available: Postmark or Resend with SPF and DKIM set. |
 
@@ -778,7 +778,7 @@ appears in copy is interpolated from config or a policy, never typed into a temp
 **Local (reviewer or me):** `mise install` (Ruby 3.4), `bin/setup`, `bin/sandbox-build`
 (builds the sandbox image), `bin/dev` (Puma, Tailwind watcher, and the Solid Queue worker
 from `Procfile.dev`). Docker Desktop must be running. Verification and reset mail shows
-up at `/letter_opener`, so the full login flow works with no mail configuration.
+up at `/dev/mail`, so the full login flow works with no mail configuration.
 
 **Packaging:** the Rails app ships as one Docker image, built from the `Dockerfile` that
 Rails 8 generates (multi-stage, non-root `rails` user, assets precompiled, Thruster in
@@ -1075,7 +1075,7 @@ hostile-input tests prove the sandbox claims rather than assert them.
 |---|---|---|
 | Deny-by-default authentication: `require_authentication` in `ApplicationController`, public actions opt out explicitly | in plan | Verified by the route-coverage test in section 11 |
 | No public API and no API docs in v1. Any future JSON API uses the same session or hashed per-user tokens; no Swagger UI outside development | added | Nothing to hide because nothing is mounted |
-| Dev-only routes (`/rails/info`, `/rails/mailers`, `/letter_opener`) absent in production, asserted by test | added | Rails does this by default; the test stops a regression |
+| Dev-only routes (`/rails/info`, `/rails/mailers`, `/dev/mail`) absent in production, asserted by test | added | Rails does this by default; the inbox routes sit behind `Rails.env.local?` |
 | Any queue dashboard (Mission Control) behind admin auth or not mounted | added | Solid Queue has no UI by default |
 | Action Cable connection authenticates from the session cookie and rejects anonymous connections; stream names are signed | in plan | Test that an unauthenticated socket is refused |
 | Rate limiting in two layers: Rack::Attack for per-IP request throttles, auth-path throttles, and a blocklist, backed by Solid Cache; Rails `rate_limit` per sensitive action | added | Section 4 covers the per-action limits; Rack::Attack adds the IP-level brake and a safelist for `/up` |

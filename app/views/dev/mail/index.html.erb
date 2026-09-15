@@ -1,0 +1,34 @@
+<% content_for :title, "Mail" %>
+<div class="page max-w-3xl">
+  <%= render "layouts/flash" %>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="page-title">Mail</h1>
+      <p class="mt-1.5 text-sm text-zinc-500">Everything the app has sent in development. Nothing here leaves this machine.</p>
+    </div>
+    <% if @messages.any? %>
+      <%= button_to "Clear", dev_mail_path, method: :delete, class: "btn btn-secondary", form_class: "contents" %>
+    <% end %>
+  </div>
+
+  <% if @messages.empty? %>
+    <p class="empty">Nothing has been sent yet. Sign up or request a password reset and it will show up here.</p>
+  <% else %>
+    <div class="mt-6 overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr><th>Subject</th><th>To</th><th class="text-right">Sent</th></tr>
+        </thead>
+        <tbody>
+          <% @messages.each do |message| %>
+            <tr>
+              <td class="w-full"><%= link_to message.subject, dev_mail_message_path(message.id), class: "font-medium text-zinc-900" %></td>
+              <td class="whitespace-nowrap text-zinc-500"><%= message.to.join(", ") %></td>
+              <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(message.delivered_at) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

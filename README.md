@@ -12,7 +12,7 @@ bin/setup                              # gems, databases, Playwright's Chromium,
 bin/dev                                # web on http://localhost:3000, Tailwind watcher, and the job worker
 ```
 
-Sign up with a `windbornesystems.com` address (or add your own to `ALLOWED_EMAILS`). Verification and reset mail opens in the browser at http://localhost:3000/letter_opener. Nothing else needs configuring.
+Sign up with a `windbornesystems.com` address, or put your own in a `.env` file (see `.env.example`). Verification and reset mail lands in the development inbox at http://localhost:3000/dev/mail, linked as "Mail" in the header. Nothing else needs configuring.
 
 Without Docker, `SANDBOX_RUNNER=fake bin/dev` runs the whole app with a runner that executes nothing.
 
