@@ -175,6 +175,24 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", /limit 2:00/
   end
 
+  test "run again is disabled while the run is queued or running and a link once it has finished" do
+    sign_in_as @user
+    run = runs(:verified_queued)
+
+    get run_path(run)
+    assert_select "button[disabled]", text: "Run again"
+    assert_select "a[href=?]", new_run_path(code: run.code), count: 0
+
+    run.update!(status: "running", started_at: 5.seconds.ago)
+    get run_path(run)
+    assert_select "button[disabled]", text: "Run again"
+
+    run.update!(status: "succeeded", finished_at: Time.current, exit_code: 0)
+    get run_path(run)
+    assert_select "a[href=?]", new_run_path(code: run.code), text: "Run again"
+    assert_select "button[disabled]", count: 0
+  end
+
   test "a finished run has no clock" do
     sign_in_as @user
     get run_path(runs(:verified_succeeded))

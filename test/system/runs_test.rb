@@ -13,6 +13,8 @@ class RunsTest < ApplicationSystemTestCase
     click_button "Run"
 
     assert_selector "h1", text: "Queued"
+    assert_selector "button[disabled]", text: "Run again"
+    assert_no_link "Run again"
     page.execute_script("window.__stayed = true")
 
     # The worker finishing is a broadcast, which Turbo sends through a debounced
@@ -25,6 +27,8 @@ class RunsTest < ApplicationSystemTestCase
 
     assert_selector "h1", text: "Succeeded"
     assert_selector "pre", text: "hello from the sandbox"
+    assert_link "Run again"
+    assert_no_selector "button[disabled]", text: "Run again"
     assert page.evaluate_script("window.__stayed"), "the page must update in place, not reload"
   end
 
