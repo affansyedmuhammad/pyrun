@@ -69,12 +69,12 @@ module Admin
         assert_logged(/admin\.user_deactivated admin=#{@admin.id} user=#{user.id}/) do
           post deactivate_admin_user_path(user)
         end
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-notice", /verified@windbornesystems\.com/
       end
-      assert_redirected_to admin_users_path
       assert user.reload.disabled?
       assert_empty user.sessions
-      follow_redirect!
-      assert_select ".flash-notice", /verified@windbornesystems\.com/
     end
 
     test "a deactivated user's existing session stops working immediately" do
@@ -116,11 +116,11 @@ module Admin
     test "an admin cannot deactivate their own account" do
       as_admin do
         post deactivate_admin_user_path(@admin)
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-alert", /your own account/
       end
-      assert_redirected_to admin_users_path
       assert_not @admin.reload.disabled?
-      follow_redirect!
-      assert_select ".flash-alert", /your own account/
     end
 
     test "the list paginates" do

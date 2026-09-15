@@ -469,7 +469,11 @@ Runs are private to their owner, plus a superuser who can browse everyone's runs
   config change and takes effect on the next request.
 - **What**: `/admin/runs`, every run newest first with the owner's email, filterable by
   user and status, and `/runs/:id` for any run. Read only. A superuser cannot submit
-  code as someone else, and there is no delete.
+  code as someone else, and there is no delete. `/admin/users` (added after the first
+  build) lists every account with its status, run count, and last sign-in, and lets a
+  superuser deactivate an account (which ends its sessions), reactivate it, or sign it
+  out everywhere. Each action is logged with both ids. A superuser cannot deactivate
+  their own account, and nothing on the page can grant admin membership.
 - **How**: `User#visible_runs` returns `Run.all` for an admin and `runs` otherwise.
   Every run lookup in every controller goes through it, so authorization is one method
   with one call site per action. Views and controllers never ask `admin?` directly;

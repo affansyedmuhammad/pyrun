@@ -20,6 +20,15 @@ en:
       sent: "If that address has an account, instructions are on their way."
     update:
       updated: "Password updated. Sign in with your new password."
+  admin:
+    users:
+      deactivate:
+        done: "Deactivated %{email} and signed them out everywhere."
+        self: "You can't deactivate your own account."
+      reactivate:
+        done: "Reactivated %{email}."
+      sessions:
+        done: "Signed %{email} out everywhere."
   runs:
     submit:
       paused: "Runs are paused for maintenance. Try again later."

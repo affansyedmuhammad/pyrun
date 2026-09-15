@@ -31,6 +31,12 @@ module RunsHelper
     end
   end
 
+  ACCOUNT_STATUS_DOTS = { "active" => "bg-emerald-500", "unverified" => "bg-amber-500", "disabled" => "bg-zinc-400" }.freeze
+
+  def account_status_dot(user)
+    tag.span(class: "status-dot #{ACCOUNT_STATUS_DOTS.fetch(user.account_status)}", aria: { hidden: true })
+  end
+
   def filter_class(active)
     active ? "font-medium text-zinc-900" : "text-zinc-500 hover:text-zinc-900"
   end

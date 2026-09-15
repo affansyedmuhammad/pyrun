@@ -164,6 +164,11 @@
     @apply text-xs font-medium uppercase tracking-wide text-zinc-500;
   }
 
+  /* Small inline label, e.g. the Admin badge on the users page */
+  .tag {
+    @apply ml-2 inline-block rounded-sm border border-zinc-300 px-1.5 py-0.5 align-middle text-[11px] font-medium uppercase tracking-wide text-zinc-600;
+  }
+
   /* Newer / older pager on a run (runs/_pager) */
   .pager {
     @apply inline-flex overflow-hidden rounded-md border border-zinc-300 bg-white;

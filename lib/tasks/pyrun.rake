@@ -21,16 +21,15 @@ namespace :pyrun do
   desc "Disable an account and end its sessions. EMAIL=person@windbornesystems.com"
   task deactivate: :environment do
     user = user_from_env!
-    user.update!(disabled_at: Time.current)
-    user.sessions.destroy_all
+    user.deactivate!
     Rails.logger.warn "auth.deactivated user=#{user.id}"
-    puts "Deactivated #{user.email_address}; #{user.sessions.count} sessions remain."
+    puts "Deactivated #{user.email_address} and ended their sessions."
   end
 
   desc "Re-enable an account. EMAIL=person@windbornesystems.com"
   task reactivate: :environment do
     user = user_from_env!
-    user.update!(disabled_at: nil)
+    user.reactivate!
     puts "Reactivated #{user.email_address}."
   end
 

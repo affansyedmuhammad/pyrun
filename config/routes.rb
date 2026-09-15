@@ -20,6 +20,13 @@ Rails.application.routes.draw do
   # Superusers only (docs/DESIGN.md §4.16). Members get a 404 here.
   namespace :admin do
     resources :runs, only: :index
+    resources :users, only: :index do
+      member do
+        post :deactivate
+        post :reactivate
+        delete :sessions
+      end
+    end
   end
 
   if Rails.env.local?

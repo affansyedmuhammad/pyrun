@@ -83,6 +83,7 @@ module Authentication
 
     def start_new_session_for(user, method: "password")
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, login_method: method).tap do |session|
+        user.update_column(:last_signed_in_at, Time.current)
         Current.session = session
         cookies.signed[SESSION_COOKIE] = { value: session.id, httponly: true, secure: Rails.env.production?, same_site: :lax, expires: SESSION_LIFETIME.from_now }
         Rails.logger.info "auth.login user=#{user.id} method=#{method} ip=#{request.remote_ip}"

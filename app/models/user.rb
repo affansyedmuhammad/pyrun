@@ -40,9 +40,40 @@ class User < ApplicationRecord
     password_salt&.last(10)
   end
 
+  ACCOUNT_STATUSES = %w[active unverified disabled].freeze
+
+  scope :recent, -> { order(created_at: :desc, id: :desc) }
+  scope :with_account_status, ->(status) {
+    case status
+    when "disabled" then where.not(disabled_at: nil)
+    when "unverified" then where(disabled_at: nil, email_verified_at: nil)
+    when "active" then where(disabled_at: nil).where.not(email_verified_at: nil)
+    else all
+    end
+  }
+
   def verified? = email_verified_at.present?
   def disabled? = disabled_at.present?
   def has_password? = password_digest.present?
+
+  def account_status
+    if disabled? then "disabled"
+    elsif !verified? then "unverified"
+    else "active"
+    end
+  end
+
+  # Disabling ends every session at once; resume_session refuses the rest.
+  def deactivate!
+    transaction do
+      update!(disabled_at: Time.current)
+      sessions.destroy_all
+    end
+  end
+
+  def reactivate!
+    update!(disabled_at: nil)
+  end
 
   def verify!
     update!(email_verified_at: Time.current) unless verified?
@@ -53,6 +84,7 @@ class User < ApplicationRecord
   # Views and controllers ask named permissions, never admin? directly, so a
   # third role later is a change here and nowhere else.
   def can_view_all_runs? = admin?
+  def can_manage_users? = admin?
 
   # Every run lookup in every controller goes through this, so who may see what
   # is decided in exactly one place.

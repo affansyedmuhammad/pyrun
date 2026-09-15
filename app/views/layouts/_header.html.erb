@@ -13,6 +13,9 @@
           <% if Current.user.can_view_all_runs? %>
             <%= link_to "All runs", admin_runs_path, class: "btn btn-quiet" %>
           <% end %>
+          <% if Current.user.can_manage_users? %>
+            <%= link_to "Users", admin_users_path, class: "btn btn-quiet" %>
+          <% end %>
         <% end %>
         <span class="ml-3 hidden text-zinc-500 sm:inline"><%= Current.user.email_address %></span>
         <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-quiet ml-1", form_class: "contents" %>
