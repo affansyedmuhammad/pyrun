@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Builds the sandbox image that Sandbox::DockerRunner runs code in.
+# Tags it as the configured image name (default pyrun-sandbox:latest) and with
+# the current git SHA, so deploys can pin SANDBOX_IMAGE to an exact build.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+image="${SANDBOX_IMAGE:-pyrun-sandbox:latest}"
+sha="$(git rev-parse --short HEAD 2>/dev/null || echo dev)"
+
+docker build --tag "$image" --tag "pyrun-sandbox:$sha" sandbox/
+docker image inspect --format "Built {{.RepoTags}} id={{.Id}}" "$image"

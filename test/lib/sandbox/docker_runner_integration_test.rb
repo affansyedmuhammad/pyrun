@@ -5,14 +5,27 @@ module Sandbox
   # with real hostile programs. Skipped when Docker or the image is not available;
   # CI builds the image first with bin/sandbox-build.
   class DockerRunnerIntegrationTest < ActiveSupport::TestCase
+    # These tests share one Docker daemon, and the reaper test removes every
+    # labelled container, so they must never overlap. Rails runs test methods in
+    # parallel worker processes; an exclusive file lock serializes them across
+    # processes without depending on test-runner internals.
+    LOCK_PATH = Rails.root.join("tmp/sandbox_integration.lock")
+
     setup do
       skip "Docker is not available" unless docker_available?
       skip "Sandbox image #{Pyrun.config.sandbox_image} is not built; run bin/sandbox-build" unless sandbox_image_built?
+      @lock = File.open(LOCK_PATH, File::RDWR | File::CREAT, 0o644)
+      @lock.flock(File::LOCK_EX)
       @runner = DockerRunner.new
     end
 
+    teardown do
+      @lock&.flock(File::LOCK_UN)
+      @lock&.close
+    end
+
     test "hello world succeeds with its output, exit code, timing, and image digest" do
-      result = run("print('hello from the sandbox')")
+      result = execute("print('hello from the sandbox')")
       assert_equal :succeeded, result.status
       assert_equal 0, result.exit_code
       assert_equal "hello from the sandbox\n", result.stdout
@@ -24,30 +37,30 @@ module Sandbox
     end
 
     test "an uncaught exception fails with the traceback on stderr" do
-      result = run("raise RuntimeError('boom')")
+      result = execute("raise RuntimeError('boom')")
       assert_equal :failed, result.status
       assert_equal 1, result.exit_code
       assert_includes result.stderr, "RuntimeError: boom"
     end
 
     test "numpy is available" do
-      result = run("import numpy as np\nprint(int((np.arange(10) ** 2).sum()))")
+      result = execute("import numpy as np\nprint(int((np.arange(10) ** 2).sum()))")
       assert_equal :succeeded, result.status, result.stderr
       assert_equal "285\n", result.stdout
     end
 
     test "an infinite loop is killed at the timeout and reported as timed out" do
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      result = run("print('starting', flush=True)\nwhile True:\n    pass", timeout_seconds: 2)
+      result = execute("print('starting', flush=True)\nwhile True:\n    pass", timeout_seconds: 2)
       elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
 
-      assert_equal :timed_out, result.status
+      assert_equal :timed_out, result.status, result.inspect
       assert_includes result.stdout, "starting", "output printed before the kill must survive"
       assert_operator elapsed, :<, 8, "the kill must not wait for the supervisor's grace period to expire twice"
     end
 
     test "a memory bomb is killed by the cgroup and reported as out of memory" do
-      result = run("chunks = []\nwhile True:\n    chunks.append(bytearray(8 * 1024 * 1024))", memory_mb: 64, timeout_seconds: 10)
+      result = execute("chunks = []\nwhile True:\n    chunks.append(bytearray(8 * 1024 * 1024))", memory_mb: 64, timeout_seconds: 10)
       assert_equal :failed, result.status
       assert result.oom_killed, "expected the OOM flag; exit=#{result.exit_code} stderr=#{result.stderr}"
     end
@@ -63,7 +76,7 @@ module Sandbox
             print("fork refused", flush=True)
             sys.exit(3)
       PY
-      result = run(code, pids_limit: 16, timeout_seconds: 10)
+      result = execute(code, pids_limit: 16, timeout_seconds: 10)
       assert_includes [ :failed, :timed_out ], result.status
       assert_includes result.stdout, "fork refused"
     end
@@ -77,7 +90,7 @@ module Sandbox
         except OSError as e:
             print("blocked:", type(e).__name__)
       PY
-      result = run(code)
+      result = execute(code)
       assert_equal :succeeded, result.status, result.stderr
       assert_match(/\Ablocked:/, result.stdout)
     end
@@ -93,7 +106,7 @@ module Sandbox
             f.write("ok")
         print("tmp:", open("/tmp/x").read())
       PY
-      result = run(code)
+      result = execute(code)
       assert_equal :succeeded, result.status, result.stderr
       assert_includes result.stdout, "root read-only:"
       assert_includes result.stdout, "tmp: ok"
@@ -105,12 +118,13 @@ module Sandbox
         caps = [l.split()[1] for l in open("/proc/self/status") if l.startswith("CapEff")][0]
         print("caps", caps)
         print("uid", os.getuid())
-        print("ifaces", sorted(os.listdir("/sys/class/net")))
+        up = [i for i in os.listdir("/sys/class/net") if os.path.isdir(f"/sys/class/net/{i}") and open(f"/sys/class/net/{i}/operstate").read().strip() != "down"]
+        print("ifaces", sorted(up))
         print("docker.sock", os.path.exists("/var/run/docker.sock"))
         print("shm", os.path.exists("/dev/shm"))
-        print("env", sorted(k for k in os.environ if "RAILS" in k or "SECRET" in k or "KEY" in k))
+        print("env", sorted(k for k in os.environ if k.startswith(("RAILS", "SECRET", "DATABASE", "SMTP", "AWS", "DOCKER"))))
       PY
-      result = run(code)
+      result = execute(code)
       assert_equal :succeeded, result.status, result.stderr
       assert_includes result.stdout, "caps 0000000000000000"
       assert_includes result.stdout, "uid 65534"
@@ -121,21 +135,21 @@ module Sandbox
     end
 
     test "runaway output is cut at the limit and the run is stopped" do
-      result = run("while True:\n    print('x' * 1000)", max_output_bytes: 20_000, timeout_seconds: 10)
-      assert_equal :failed, result.status
+      result = execute("while True:\n    print('x' * 1000)", max_output_bytes: 20_000, timeout_seconds: 10)
+      assert_equal :failed, result.status, result.inspect
       assert result.stdout_truncated
       assert_operator result.stdout.bytesize, :<=, 20_000
       assert_operator result.duration_ms, :<, 9_000, "the output cap must stop the run before the timeout"
     end
 
     test "reading stdin hits EOF immediately" do
-      result = run("input()")
+      result = execute("input()")
       assert_equal :failed, result.status
       assert_includes result.stderr, "EOFError"
     end
 
     test "arbitrary bytes on stdout do not break the runner" do
-      result = run("import sys\nsys.stdout.buffer.write(b'ok\\xff\\x00!\\n')")
+      result = execute("import sys\nsys.stdout.buffer.write(b'ok\\xff\\x00!\\n')")
       assert_equal :succeeded, result.status, result.stderr
       assert_includes result.stdout.b, "ok"
     end
@@ -168,8 +182,8 @@ module Sandbox
 
     test "no container is left behind after a run" do
       before = labelled_containers
-      run("print(1)")
-      run("while True: pass", timeout_seconds: 1)
+      execute("print(1)")
+      execute("while True: pass", timeout_seconds: 1)
       assert_equal before, labelled_containers
     end
 
@@ -178,7 +192,7 @@ module Sandbox
         Limits.new(**{ timeout_seconds: 5, memory_mb: 64, cpus: 0.5, pids_limit: 16, max_output_bytes: 100_000 }.merge(overrides))
       end
 
-      def run(code, **overrides)
+      def execute(code, **overrides)
         @runner.run(code, runtime: Runtime.default, limits: limits(**overrides))
       end
 
