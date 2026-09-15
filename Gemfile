@@ -27,6 +27,9 @@ gem "json", "< 3"
 # Pagination for the runs lists.
 gem "pagy", "~> 9.3"
 
+# Per-address request throttling in front of the app.
+gem "rack-attack", "~> 6.7"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

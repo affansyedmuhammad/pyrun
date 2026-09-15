@@ -8,4 +8,43 @@ namespace :pyrun do
       puts "#{name.to_s.ljust(width)}  #{shown}"
     end
   end
+
+  desc "Queue depth, run counts by status, users and sessions"
+  task stats: :environment do
+    counts = Run.group(:status).count
+    puts "users      #{User.count}"
+    puts "sessions   #{Session.count}"
+    puts "runs       #{Run.count}"
+    Run::STATUSES.each { |status| puts "#{status.ljust(10)} #{counts.fetch(status, 0)}" }
+  end
+
+  desc "Disable an account and end its sessions. EMAIL=person@windbornesystems.com"
+  task deactivate: :environment do
+    user = user_from_env!
+    user.update!(disabled_at: Time.current)
+    user.sessions.destroy_all
+    Rails.logger.warn "auth.deactivated user=#{user.id}"
+    puts "Deactivated #{user.email_address}; #{user.sessions.count} sessions remain."
+  end
+
+  desc "Re-enable an account. EMAIL=person@windbornesystems.com"
+  task reactivate: :environment do
+    user = user_from_env!
+    user.update!(disabled_at: nil)
+    puts "Reactivated #{user.email_address}."
+  end
+
+  desc "Sign everyone out everywhere (incident response)"
+  task revoke_sessions: :environment do
+    count = Session.delete_all
+    Rails.logger.warn "auth.sessions_revoked count=#{count}"
+    puts "Revoked #{count} sessions."
+  end
+
+  # Operator input from the command line, not app configuration.
+  def user_from_env!
+    email = ENV["EMAIL"].to_s.strip.downcase
+    abort "Usage: EMAIL=person@example.com bin/rails pyrun:<task>" if email.empty?
+    User.find_by(email_address: email) || abort("No account for #{email}")
+  end
 end

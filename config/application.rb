@@ -1,12 +1,24 @@
 require_relative "boot"
 
 require "rails/all"
+require_relative "../lib/pyrun/config"
+require_relative "../lib/pyrun/request_size_limit"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 module Pyrun
+  # The one place environment variables are read. Defined before the environment
+  # files load so they, queue.yml, and initializers can all use it.
+  class << self
+    attr_writer :config
+
+    def config
+      @config ||= Config.from_env(ENV)
+    end
+  end
+
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
@@ -24,6 +36,21 @@ module Pyrun
 
     # Mail has its own queue so a backlog of runs never delays a verification link.
     config.action_mailer.deliver_later_queue_name = :mailers
+
+    # Refuse oversized request bodies before anything else looks at them.
+    config.middleware.insert 0, Pyrun::RequestSizeLimit
+
+    # Hardening headers on every response. The CSP lives in its own initializer.
+    config.action_dispatch.default_headers = {
+      "X-Frame-Options" => "DENY",
+      "X-Content-Type-Options" => "nosniff",
+      "X-XSS-Protection" => "0",
+      "Referrer-Policy" => "strict-origin-when-cross-origin",
+      "Cross-Origin-Opener-Policy" => "same-origin",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      # Rails' permissions_policy DSL still writes the legacy Feature-Policy header.
+      "Permissions-Policy" => "camera=(), microphone=(), geolocation=(), payment=(), usb=(), gyroscope=()"
+    }
 
     # Configuration for the application, engines, and railties goes here.
     #

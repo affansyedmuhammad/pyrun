@@ -44,7 +44,7 @@ class PyrunAdminTasksTest < ActiveSupport::TestCase
 
   private
     def with_env(pairs)
-      previous = pairs.keys.to_h { |k| [ k, ENV[k]] }
+      previous = pairs.keys.to_h { |k| [ k, ENV[k] ] }
       pairs.each { |k, v| ENV[k] = v }
       yield
     ensure

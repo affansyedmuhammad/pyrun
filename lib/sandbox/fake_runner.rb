@@ -3,7 +3,7 @@ module Sandbox
   # without Docker. Tests script it with FakeRunner.respond_with.
   class FakeRunner < Runner
     class << self
-      attr_accessor :scripted
+      attr_accessor :scripted, :last_reap_older_than
 
       # For the duration of the block, every run returns +result+, or the return
       # value of +result+ when it is callable with (code, runtime:, limits:).
@@ -28,7 +28,11 @@ module Sandbox
       OUT
     end
 
-    def reap_orphans(older_than:) = 0
+    def reap_orphans(older_than:)
+      self.class.last_reap_older_than = older_than
+      0
+    end
+
     def healthy? = true
   end
 end

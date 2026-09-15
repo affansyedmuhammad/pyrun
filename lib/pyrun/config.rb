@@ -35,7 +35,8 @@ module Pyrun
       max_queue_depth:            [ "MAX_QUEUE_DEPTH",            :positive_int, 200 ],
       runs_paused:                [ "RUNS_PAUSED",                :boolean,     false ],
       retention_days:             [ "RETENTION_DAYS",             :non_negative_int, 0 ],
-      run_rate_limit:             [ "RUN_RATE_LIMIT",             :rate_limit,  [ 20, 60 ] ]
+      run_rate_limit:             [ "RUN_RATE_LIMIT",             :rate_limit,  [ 20, 60 ] ],
+      request_rate_limit:         [ "REQUEST_RATE_LIMIT",         :rate_limit,  [ 300, 60 ] ]
     }.freeze
 
     REDACTED = %i[smtp_password].freeze
@@ -71,6 +72,8 @@ module Pyrun
 
     def run_rate_limit_count = run_rate_limit[0]
     def run_rate_limit_period = run_rate_limit[1].seconds
+    def request_rate_limit_count = request_rate_limit[0]
+    def request_rate_limit_period = request_rate_limit[1].seconds
 
     private
 

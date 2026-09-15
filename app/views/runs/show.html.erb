@@ -22,7 +22,9 @@
 
   <section class="mt-8">
     <h2 class="section-title">Output</h2>
-    <% if @run.finished? %>
+    <% if @run.outputs_expired_at? %>
+      <p class="output-empty">Output expired and was deleted <%= relative_time(@run.outputs_expired_at) %>.</p>
+    <% elsif @run.finished? %>
       <% if @run.stdout.present? %>
         <pre class="output"><%= @run.stdout %></pre>
       <% else %>

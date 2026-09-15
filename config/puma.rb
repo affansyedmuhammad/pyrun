@@ -40,3 +40,8 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+
+# Slow-client resistance: a connection that sends nothing, or trickles a body,
+# is dropped quickly. The proxy in front buffers real requests anyway.
+first_data_timeout 10
+persistent_timeout 10
