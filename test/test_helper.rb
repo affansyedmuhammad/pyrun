@@ -14,6 +14,15 @@ module ActiveSupport
     # Rate-limit counters live in the cache; start every test with a clean slate.
     setup { Rails.cache.clear }
 
+    # Sandbox integration tests need a Docker daemon and the built sandbox image.
+    def docker_available?
+      @@docker_available ||= system("docker", "info", out: File::NULL, err: File::NULL)
+    end
+
+    def sandbox_image_built?
+      @@sandbox_image_built ||= system("docker", "image", "inspect", Pyrun.config.sandbox_image, out: File::NULL, err: File::NULL)
+    end
+
     # Swap the app config for the duration of a block. Config is immutable, so this is
     # the only way tests change limits, allowlists, or admin membership.
     def with_config(**changes)
