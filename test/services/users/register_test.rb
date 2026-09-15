@@ -2,7 +2,8 @@ require "test_helper"
 
 module Users
   class RegisterTest < ActiveSupport::TestCase
-    PASSWORD = "correct horse battery staple"
+    PASSWORD = "Correct-Horse-Battery-9"
+    FIXTURE_PASSWORD = "correct horse battery staple"
 
     test "creates an unverified user when the address is allowed" do
       result = nil
@@ -34,7 +35,7 @@ module Users
       end
       assert result.existing?
       assert_equal existing, result.user
-      assert existing.reload.authenticate(PASSWORD), "password must not have changed"
+      assert existing.reload.authenticate(FIXTURE_PASSWORD), "password must not have changed"
     end
 
     test "returns validation errors for a bad password and creates nothing" do

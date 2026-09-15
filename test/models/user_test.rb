@@ -1,7 +1,7 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
-  PASSWORD = "correct horse battery staple"
+  PASSWORD = "Correct-Horse-Battery-9" # 12+ chars, upper, lower, number, special
 
   test "downcases and strips email_address" do
     user = User.new(email_address: " DOWNCASED@EXAMPLE.COM ")
@@ -31,6 +31,26 @@ class UserTest < ActiveSupport::TestCase
     user = build_user(password: long, password_confirmation: long)
     assert_not user.valid?
     assert_includes user.errors[:password], "must be at most 72 bytes"
+  end
+
+  test "password must include an uppercase letter, a lowercase letter, a number, and a special character" do
+    user = build_user(password: "correct horse battery staple", password_confirmation: "correct horse battery staple")
+    assert_not user.valid?
+    assert_includes user.errors[:password], "must include an uppercase letter"
+    assert_includes user.errors[:password], "must include a number"
+    assert_includes user.errors[:password], "must include a special character"
+    assert_not_includes user.errors[:password], "must include a lowercase letter"
+
+    user = build_user(password: "CORRECT-HORSE-BATTERY-9", password_confirmation: "CORRECT-HORSE-BATTERY-9")
+    assert_not user.valid?
+    assert_equal [ "must include a lowercase letter" ], user.errors[:password]
+
+    assert build_user.valid?
+  end
+
+  test "the rules the checklist shows are the rules the model enforces" do
+    assert_equal %i[uppercase lowercase digit special], User::PASSWORD_RULES.keys
+    User::PASSWORD_RULES.each_value { |pattern| assert_kind_of Regexp, pattern }
   end
 
   test "password confirmation must match" do

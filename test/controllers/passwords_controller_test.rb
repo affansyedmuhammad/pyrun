@@ -2,7 +2,7 @@ require "test_helper"
 
 class PasswordsControllerTest < ActionDispatch::IntegrationTest
   PASSWORD = "correct horse battery staple"
-  NEW_PASSWORD = "a brand new passphrase"
+  NEW_PASSWORD = "A-brand-new-passphrase-7"
 
   setup { @user = users(:verified) }
 
@@ -33,10 +33,11 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     assert_enqueued_emails 0
   end
 
-  test "the edit page renders for a valid token" do
+  test "the edit page renders for a valid token with the password checklist" do
     get edit_password_path(@user.generate_token_for(:password_reset))
     assert_response :success
     assert_select "h1", "Choose a new password"
+    assert_select "ul.rules li[data-password-rules-target=rule]", User::PASSWORD_RULES.size + 1
   end
 
   test "an invalid token goes back to the request page with an explanation" do

@@ -19,7 +19,7 @@ class LoginTest < ApplicationSystemTestCase
     fill_in "Password", with: "not it, not it"
     click_button "Sign in"
 
-    assert_text "Try another email address or password."
+    assert_text "Incorrect email or password."
     assert_field "Email", with: users(:verified).email_address
   end
 

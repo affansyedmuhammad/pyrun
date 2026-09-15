@@ -1,7 +1,7 @@
 require "application_system_test_case"
 
 class PasswordResetTest < ApplicationSystemTestCase
-  NEW_PASSWORD = "a brand new passphrase"
+  NEW_PASSWORD = "A-brand-new-passphrase-7"
 
   test "resetting a forgotten password from the sign-in page" do
     user = users(:verified)

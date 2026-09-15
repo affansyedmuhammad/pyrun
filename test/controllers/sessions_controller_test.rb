@@ -7,6 +7,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get login_path
     assert_response :success
     assert_select "h1", "Sign in"
+    assert_select "p.auth-lede", count: 0
     assert_select "a[href=?]", signup_path
     assert_select "a[href=?]", new_password_path
   end
@@ -31,11 +32,11 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
   test "wrong password and unknown address get the same answer" do
     post login_path, params: { email_address: users(:verified).email_address, password: "wrong wrong wrong" }
     assert_response :unprocessable_content
-    assert_select ".flash", "Try another email address or password."
+    assert_select ".flash", "Incorrect email or password."
 
     post login_path, params: { email_address: "nobody@windbornesystems.com", password: "wrong wrong wrong" }
     assert_response :unprocessable_content
-    assert_select ".flash", "Try another email address or password."
+    assert_select ".flash", "Incorrect email or password."
     assert_nil cookies[:session_id].presence
   end
 

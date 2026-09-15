@@ -1,7 +1,7 @@
 require "application_system_test_case"
 
 class SignupTest < ApplicationSystemTestCase
-  PASSWORD = "correct horse battery staple"
+  PASSWORD = "Correct-Horse-Battery-9"
 
   test "a new person signs up, verifies by email, and lands on their runs" do
     visit signup_path
@@ -12,6 +12,10 @@ class SignupTest < ApplicationSystemTestCase
 
     assert_text "Check your inbox"
     assert_text "new.person@windbornesystems.com"
+
+    click_button "Send it again"
+    assert_text "We sent a new link to new.person@windbornesystems.com"
+    assert_equal 2, ActionMailer::Base.deliveries.size
 
     visit path_from_mail(ActionMailer::Base.deliveries.last, "/verify-email/")
     assert_text "Email verified"
@@ -39,5 +43,17 @@ class SignupTest < ApplicationSystemTestCase
 
     assert_selector ".field-error", text: "at least 12 characters"
     assert_nil User.find_by(email_address: "new.person@windbornesystems.com")
+  end
+
+  test "the password checklist ticks each rule as you type" do
+    visit signup_path
+    assert_selector "ul.rules li[data-met=false]", count: 5
+
+    fill_in "Password", with: "short"
+    assert_selector "ul.rules li[data-met=true]", count: 1, text: "A lowercase letter"
+
+    fill_in "Password", with: "Correct-Horse-Battery-9"
+    assert_selector "ul.rules li[data-met=true]", count: 5
+    assert_no_selector "ul.rules li[data-met=false]"
   end
 end
