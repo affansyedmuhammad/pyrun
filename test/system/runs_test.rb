@@ -97,6 +97,7 @@ class RunsTest < ApplicationSystemTestCase
 
     find("body").send_keys(:left)
     assert_selector "h1", text: "Failed"
+    assert_no_selector "html[data-turbo-preview]" # Turbo shows a cached preview first; wait for the fresh page
     click_link "Newer"
     assert_selector "h1", text: "Queued"
     assert_current_path run_path(runs(:verified_queued))
