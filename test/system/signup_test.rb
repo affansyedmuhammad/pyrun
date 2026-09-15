@@ -26,7 +26,7 @@ class SignupTest < ApplicationSystemTestCase
     fill_in "Confirm password", with: PASSWORD
     click_button "Create account"
 
-    assert_text "Sign-ups are limited to windbornesystems.com addresses."
+    assert_selector ".field-error", text: "Sign-ups are limited to windbornesystems.com addresses."
     assert_field "Email", with: "someone@example.com"
   end
 
@@ -37,7 +37,7 @@ class SignupTest < ApplicationSystemTestCase
     fill_in "Confirm password", with: "short"
     click_button "Create account"
 
-    assert_text "at least 12 characters"
+    assert_selector ".field-error", text: "at least 12 characters"
     assert_nil User.find_by(email_address: "new.person@windbornesystems.com")
   end
 end
