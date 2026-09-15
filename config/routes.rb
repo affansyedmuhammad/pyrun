@@ -25,6 +25,8 @@ Rails.application.routes.draw do
         post :deactivate
         post :reactivate
         post :password_reset
+        post :make_admin
+        post :remove_admin
         delete :sessions
       end
     end

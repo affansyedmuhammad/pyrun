@@ -471,9 +471,10 @@ Runs are private to their owner, plus a superuser who can browse everyone's runs
   user and status, and `/runs/:id` for any run. Read only. A superuser cannot submit
   code as someone else, and there is no delete. `/admin/users` (added after the first
   build) lists every account with its status, run count, and last sign-in, and lets a
-  superuser deactivate an account (which ends its sessions), reactivate it, or sign it
-  out everywhere. Each action is logged with both ids. A superuser cannot deactivate
-  their own account, and nothing on the page can grant admin membership.
+  superuser deactivate an account (which ends its sessions), reactivate it, sign it
+  out everywhere, send a password reset link, or grant and remove admin access. Each
+  action is logged with both ids. A superuser cannot deactivate their own account or
+  remove their own admin access.
 - **How**: `User#visible_runs` returns `Run.all` for an admin and `runs` otherwise.
   Every run lookup in every controller goes through it, so authorization is one method
   with one call site per action. Views and controllers never ask `admin?` directly;
@@ -484,8 +485,12 @@ Runs are private to their owner, plus a superuser who can browse everyone's runs
 - **Non-admins** requesting anything under `/admin` get a 404, not a 403, so the area's
   existence is not advertised.
 - **Audit**: an admin opening another user's run is logged with both ids.
-- **Upgrade path**: when admins need to be managed in-app, `admin?` reads a `role`
-  column instead of the policy. It is the only call site that changes.
+- **Upgrade path, taken**: admins are now also managed in-app. `admin?` reads a `role`
+  column *or* the policy: `ADMIN_EMAILS` still grants access from config, which is how
+  the first admin exists and how operations can always get in, and the Users page can
+  make a member an admin or remove it. Two guards: nobody can remove their own access,
+  and access that comes from config cannot be removed from the page. `admin?` was the
+  only call site that changed.
 
 Tests: admin sees every run on `/admin/runs` and can open another user's run; a member
 gets 404 on both; the admin link is absent for members; removing an address from

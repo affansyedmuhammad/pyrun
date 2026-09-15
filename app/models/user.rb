@@ -41,6 +41,9 @@ class User < ApplicationRecord
   end
 
   ACCOUNT_STATUSES = %w[active unverified disabled].freeze
+  ROLES = %w[member admin].freeze
+
+  validates :role, inclusion: { in: ROLES }
 
   scope :recent, -> { order(created_at: :desc, id: :desc) }
   scope :with_account_status, ->(status) {
@@ -79,7 +82,18 @@ class User < ApplicationRecord
     update!(email_verified_at: Time.current) unless verified?
   end
 
-  def admin? = AdminPolicy.admin?(email_address)
+  # Admin comes from the role column (managed on the Users page) or from
+  # ADMIN_EMAILS (how the first admin exists and how ops can always get in).
+  def admin? = role == "admin" || admin_from_config?
+  def admin_from_config? = AdminPolicy.admin?(email_address)
+
+  def make_admin!
+    update!(role: "admin")
+  end
+
+  def remove_admin!
+    update!(role: "member")
+  end
 
   # Views and controllers ask named permissions, never admin? directly, so a
   # third role later is a change here and nowhere else.

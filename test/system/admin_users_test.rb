@@ -41,7 +41,7 @@ class AdminUsersTest < ApplicationSystemTestCase
       end
       assert_text "verified@windbornesystems.com is now an admin"
       within(:xpath, "//tr[td[contains(normalize-space(.), 'verified@windbornesystems.com') and not(contains(., 'unverified'))]]") do
-        assert_text "Admin"
+        assert_selector ".tag", text: /admin/i # rendered uppercase by the stylesheet
         click_button "Remove admin"
       end
       assert_text "verified@windbornesystems.com is no longer an admin"

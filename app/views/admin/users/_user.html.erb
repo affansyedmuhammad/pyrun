@@ -2,7 +2,7 @@
   <td class="w-full max-w-0">
     <div class="flex items-center gap-1">
       <span class="truncate text-zinc-900" title="<%= user.email_address %>"><%= user.email_address %></span>
-      <% if user.admin? %><span class="tag shrink-0">Admin</span><% end %>
+      <% if user.admin? %><span class="tag shrink-0" title="<%= user.admin_from_config? ? "Admin through ADMIN_EMAILS in the deployment config" : "Admin" %>">Admin</span><% end %>
       <% if user == Current.user %><span class="shrink-0 text-xs text-zinc-500">(you)</span><% end %>
     </div>
   </td>
@@ -21,6 +21,13 @@
       <% if user.disabled? %>
         <%= icon_button_to "Reactivate", reactivate_admin_user_path(user), icon: :user_check, title: "Reactivate: allows sign-in again" %>
       <% elsif user != Current.user %>
+        <% if user.admin? %>
+          <% unless user.admin_from_config? %>
+            <%= icon_button_to "Remove admin", remove_admin_admin_user_path(user), icon: :shield_off, title: "Remove admin: back to a regular member" %>
+          <% end %>
+        <% else %>
+          <%= icon_button_to "Make admin", make_admin_admin_user_path(user), icon: :shield, title: "Make admin: can see every run and manage users" %>
+        <% end %>
         <%= icon_button_to "Reset password", password_reset_admin_user_path(user), icon: :key, title: "Reset password: emails them a link to choose a new one" %>
         <% if sessions.positive? %>
           <%= icon_button_to "Sign out everywhere", sessions_admin_user_path(user), icon: :log_out, method: :delete, title: "Sign out everywhere: ends #{pluralize(sessions, 'session')}" %>

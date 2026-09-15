@@ -47,6 +47,24 @@ module Admin
       end
     end
 
+    def make_admin
+      @user.make_admin!
+      Rails.logger.warn "admin.user_made_admin admin=#{Current.user.id} user=#{@user.id}"
+      redirect_to admin_users_path, notice: t(".done", email: @user.email_address), status: :see_other
+    end
+
+    def remove_admin
+      if @user == Current.user
+        redirect_to admin_users_path, alert: t(".self"), status: :see_other
+      elsif @user.admin_from_config?
+        redirect_to admin_users_path, alert: t(".from_config", email: @user.email_address), status: :see_other
+      else
+        @user.remove_admin!
+        Rails.logger.warn "admin.user_admin_removed admin=#{Current.user.id} user=#{@user.id}"
+        redirect_to admin_users_path, notice: t(".done", email: @user.email_address), status: :see_other
+      end
+    end
+
     def sessions
       @user.sessions.destroy_all
       Rails.logger.warn "admin.user_sessions_revoked admin=#{Current.user.id} user=#{@user.id}"

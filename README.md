@@ -34,7 +34,7 @@ Everything is an environment variable, read once at boot and printed by `bin/rai
 |---|---|---|
 | `ALLOWED_EMAIL_DOMAINS` | `windbornesystems.com` | Who may sign up (exact domain match) |
 | `ALLOWED_EMAILS` | none | Extra individual addresses |
-| `ADMIN_EMAILS` | none | Superusers: browse everyone's runs and manage accounts under Users |
+| `ADMIN_EMAILS` | none | Bootstrap admins. Admins browse everyone's runs and manage accounts under Users, including making other people admins |
 | `SANDBOX_TIMEOUT_SECONDS` / `SANDBOX_MEMORY_MB` / `SANDBOX_CPUS` | `120` / `256` / `1` | Per-run limits, stamped on each run |
 | `SANDBOX_CONCURRENCY` | `2` | Runs in flight at once; validated against `HOST_MEMORY_MB` |
 | `SANDBOX_RUNNER` | `docker` | `fake` runs nothing, for development without Docker |

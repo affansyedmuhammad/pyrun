@@ -30,6 +30,12 @@ en:
       password_reset:
         done: "Sent a password reset link to %{email}."
         disabled: "That account is disabled. Reactivate it first."
+      make_admin:
+        done: "%{email} is now an admin."
+      remove_admin:
+        done: "%{email} is no longer an admin."
+        self: "You can't remove your own admin access."
+        from_config: "%{email} is an admin through ADMIN_EMAILS. Change the deployment config to remove it."
       sessions:
         done: "Signed %{email} out everywhere."
   runs:
