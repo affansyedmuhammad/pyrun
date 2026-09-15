@@ -20,6 +20,21 @@ FileUtils.chdir APP_ROOT do
   #   FileUtils.cp "config/database.yml.sample", "config/database.yml"
   # end
 
+  puts "\n== Installing the Playwright browser for system tests =="
+  if system("node --version", out: File::NULL, err: File::NULL)
+    system! "npm install --no-audit --no-fund"
+    system! "npx playwright install chromium"
+  else
+    puts "Node is not installed; skipping (only bin/rails test:system needs it)."
+  end
+
+  puts "\n== Building the sandbox image =="
+  if system("docker info", out: File::NULL, err: File::NULL)
+    system! "bin/sandbox-build"
+  else
+    puts "Docker is not running; skipping. Run bin/sandbox-build later, or use SANDBOX_RUNNER=fake."
+  end
+
   puts "\n== Preparing database =="
   system! "bin/rails db:prepare"
   system! "bin/rails db:reset" if ARGV.include?("--reset")

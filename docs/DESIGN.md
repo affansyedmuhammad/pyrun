@@ -3,6 +3,9 @@
 A small Rails app that lets WindBorne people submit Python code, runs it in an isolated
 sandbox for up to two minutes, stores what it printed, and lets them browse past runs.
 
+**Status (2026-09-15):** milestones 0 to 4 of section 13 are implemented, test-first, in
+this repository. Deployment (5, 6), polish (7), and Google sign-in (8) are not yet started.
+
 This document is the thinking that happened before the code. It records the decisions,
 the alternatives I rejected and why, the threat model, and what I would change as the
 system grows. The implementation deliberately stays small; the depth lives here.
