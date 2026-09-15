@@ -140,6 +140,15 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "<script>alert(1)</script>"
   end
 
+  test "a run whose output expired says so instead of pretending nothing was printed" do
+    sign_in_as @user
+    run = runs(:verified_succeeded)
+    run.update!(stdout: nil, stderr: nil, outputs_expired_at: 1.day.ago)
+    get run_path(run)
+    assert_select "p", /Output expired/
+    assert_select "p", { text: /Nothing was printed/, count: 0 }
+  end
+
   test "a queued run says it is waiting and subscribes to updates" do
     sign_in_as @user
     get run_path(runs(:verified_queued))

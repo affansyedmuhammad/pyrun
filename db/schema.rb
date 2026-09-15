@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
   create_table "identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_at_link"
@@ -34,6 +34,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_230000) do
     t.integer "max_output_bytes", null: false
     t.integer "memory_mb", null: false
     t.boolean "oom_killed", default: false, null: false
+    t.datetime "outputs_expired_at"
     t.integer "pids_limit", null: false
     t.datetime "queued_at", null: false
     t.json "runner_metadata"
