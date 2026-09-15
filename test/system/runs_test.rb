@@ -58,6 +58,24 @@ class RunsTest < ApplicationSystemTestCase
     assert_equal "flex", page.evaluate_script("getComputedStyle(document.querySelector('.cm-editor')).display")
   end
 
+  test "the editor survives repeated failed submissions, which Turbo renders by morphing" do
+    sign_in users(:verified)
+    click_link "New run"
+    assert_selector ".cm-editor"
+
+    3.times do
+      click_button "Run"
+      assert_selector ".field-error", text: /blank/
+      assert_selector ".cm-editor .cm-gutter", text: "1"
+      assert_equal 1, page.evaluate_script("document.querySelectorAll('.cm-editor').length")
+      assert page.evaluate_script("document.querySelector(\"textarea[name='run[code]']\").hidden"), "the textarea must stay behind the editor"
+    end
+
+    fill_in_code "print('after errors')"
+    click_button "Run"
+    assert_selector "pre", text: "print('after errors')"
+  end
+
   test "the editor highlights Python, indents after a colon, indents with Tab, and submits with Cmd+Enter" do
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)
