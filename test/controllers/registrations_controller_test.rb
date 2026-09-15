@@ -90,6 +90,23 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".field-error", /uppercase letter/
   end
 
+  test "when the form comes back with errors the typed password is kept" do
+    sign_up "new@windbornesystems.com", password: "short"
+    assert_select "input[name='user[password]'][value=?]", "short"
+    assert_select "input[name='user[password_confirmation]'][value=?]", "short"
+
+    sign_up "outsider@example.com", password: "Correct-Horse-Battery-9"
+    assert_select "input[name='user[password]'][value=?]", "Correct-Horse-Battery-9"
+  end
+
+  test "password fields have a show/hide toggle" do
+    get signup_path
+    assert_select "[data-controller=password-visibility]", count: 2 do
+      assert_select "input[type=password][data-password-visibility-target=input]"
+      assert_select "button[type=button][aria-label='Show password'][aria-pressed=false] svg[aria-hidden=true]"
+    end
+  end
+
   test "a password that is the email address is rejected" do
     sign_up "new.person@windbornesystems.com", password: "new.person@windbornesystems.com"
     assert_response :unprocessable_content

@@ -15,6 +15,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
       assert_select "a[href=?]", new_password_path, text: "Forgot your password?"
     end
     assert_select "p.auth-foot a[href=?]", new_password_path, count: 0
+    assert_select "[data-controller=password-visibility] input[type=password][name=password]"
   end
 
   test "signing in starts a password session and goes home" do

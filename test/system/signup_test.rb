@@ -56,4 +56,17 @@ class SignupTest < ApplicationSystemTestCase
     assert_selector "ul.rules li[data-met=true]", count: 5
     assert_no_selector "ul.rules li[data-met=false]"
   end
+
+  test "the eye toggle reveals and hides the password" do
+    visit signup_path
+    fill_in "Password", with: "Correct-Horse-Battery-9"
+    assert_equal "password", find_field("Password")["type"]
+
+    click_button "Show password", match: :first
+    assert_equal "text", find_field("Password")["type"]
+    assert_selector "button[aria-label='Hide password'][aria-pressed=true]"
+
+    click_button "Hide password"
+    assert_equal "password", find_field("Password")["type"]
+  end
 end
