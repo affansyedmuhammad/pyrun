@@ -18,6 +18,14 @@ class Run < ApplicationRecord
   scope :recent, -> { order(created_at: :desc, id: :desc) }
   scope :active, -> { where(status: %w[queued running]) }
 
+  # One step through the recent order in either direction; id breaks ties.
+  scope :newer_than, ->(run) {
+    where("created_at > :at OR (created_at = :at AND id > :id)", at: run.created_at, id: run.id).order(created_at: :asc, id: :asc)
+  }
+  scope :older_than, ->(run) {
+    where("created_at < :at OR (created_at = :at AND id < :id)", at: run.created_at, id: run.id).recent
+  }
+
   # The show page subscribes to this run and re-renders when the worker updates it.
   broadcasts_refreshes
 

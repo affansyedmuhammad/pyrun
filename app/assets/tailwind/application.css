@@ -164,6 +164,23 @@
     @apply text-xs font-medium uppercase tracking-wide text-zinc-500;
   }
 
+  /* Newer / older pager on a run (runs/_pager) */
+  .pager {
+    @apply inline-flex overflow-hidden rounded-md border border-zinc-300 bg-white;
+  }
+  .pager > * {
+    @apply inline-flex h-10 items-center gap-1 px-3 text-sm font-medium text-zinc-900;
+  }
+  .pager > * + * {
+    @apply border-l border-zinc-300;
+  }
+  .pager a:hover {
+    @apply bg-zinc-100;
+  }
+  .pager [aria-disabled="true"] {
+    @apply text-zinc-300;
+  }
+
   /* Run status */
   .status {
     @apply inline-flex items-center gap-2;

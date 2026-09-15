@@ -87,15 +87,15 @@ class RunsTest < ApplicationSystemTestCase
     visit run_path(runs(:verified_failed))
     assert_selector "h1", text: "Failed"
 
-    find("body").send_keys(:arrow_right)
+    find("body").send_keys(:right)
     assert_selector "h1", text: "Succeeded"
     assert_current_path run_path(runs(:verified_succeeded))
 
-    find("body").send_keys(:arrow_right)
+    find("body").send_keys(:right)
     assert_selector "h1", text: "Succeeded", wait: 1 # nothing older: stays put
     assert_current_path run_path(runs(:verified_succeeded))
 
-    find("body").send_keys(:arrow_left)
+    find("body").send_keys(:left)
     assert_selector "h1", text: "Failed"
     click_link "Newer"
     assert_selector "h1", text: "Queued"

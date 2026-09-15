@@ -32,6 +32,8 @@ class RunsController < ApplicationController
 
   def show
     @run = Current.user.visible_runs.find(params[:id])
+    @newer = Current.user.visible_runs.newer_than(@run).first
+    @older = Current.user.visible_runs.older_than(@run).first
     Rails.logger.info "admin.run_view admin=#{Current.user.id} run=#{@run.id}" if @run.user_id != Current.user.id
   end
 

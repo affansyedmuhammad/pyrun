@@ -1,0 +1,16 @@
+<%# Step to the adjacent run in the list this person can see, newest first, like
+    the index. Left and Right arrow keys do the same (run-navigation controller). %>
+<nav class="pager" aria-label="Other runs" data-controller="run-navigation"
+     data-run-navigation-newer-value="<%= newer ? run_path(newer) : "" %>"
+     data-run-navigation-older-value="<%= older ? run_path(older) : "" %>">
+  <% if newer %>
+    <%= link_to run_path(newer), title: "Newer run (Left arrow)", rel: "prev" do %>&larr; Newer<% end %>
+  <% else %>
+    <span aria-disabled="true">&larr; Newer</span>
+  <% end %>
+  <% if older %>
+    <%= link_to run_path(older), title: "Older run (Right arrow)", rel: "next" do %>Older &rarr;<% end %>
+  <% else %>
+    <span aria-disabled="true">Older &rarr;</span>
+  <% end %>
+</nav>
