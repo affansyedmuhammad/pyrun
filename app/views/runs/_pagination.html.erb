@@ -1,0 +1,9 @@
+<% if pagy.pages > 1 %>
+  <nav class="mt-6 flex items-center justify-between text-sm text-zinc-500" aria-label="Pagination">
+    <span>Page <%= pagy.page %> of <%= pagy.pages %></span>
+    <div class="flex gap-2">
+      <% if pagy.prev %><%= link_to "Newer", path.call(pagy.prev), class: "btn btn-secondary h-8 px-3" %><% end %>
+      <% if pagy.next %><%= link_to "Older", path.call(pagy.next), class: "btn btn-secondary h-8 px-3" %><% end %>
+    </div>
+  </nav>
+<% end %>

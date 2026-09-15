@@ -39,6 +39,9 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
+  # Turbo refreshes arrive over Action Cable; allow both spellings of localhost.
+  config.action_cable.allowed_request_origins = [ %r{\Ahttps?://(localhost|127\.0\.0\.1)(:\d+)?\z} ]
+
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 

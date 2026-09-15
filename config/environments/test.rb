@@ -43,6 +43,9 @@ Rails.application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
+  # System tests open a websocket from 127.0.0.1:<random port> for Turbo refreshes.
+  config.action_cable.disable_request_forgery_protection = true
+
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "example.com" }
 

@@ -1,6 +1,16 @@
 <% content_for :title, "Runs" %>
 <div class="page">
   <%= render "layouts/flash" %>
-  <h1 class="page-title">Runs</h1>
-  <p class="empty">No runs yet. Your first run will show up here.</p>
+  <div class="flex items-center justify-between gap-4">
+    <h1 class="page-title">Runs</h1>
+    <%= link_to "New run", new_run_path, class: "btn btn-primary" %>
+  </div>
+
+  <% if Current.user.runs.none? %>
+    <p class="empty">No runs yet. <%= link_to "Run your first script", new_run_path, class: "link" %>.</p>
+  <% else %>
+    <%= render "runs/filters", path: ->(status) { runs_path(status: status) }, status: @status %>
+    <%= render "runs/table", runs: @runs, show_owner: false %>
+    <%= render "runs/pagination", pagy: @pagy, path: ->(page) { runs_path(status: @status, page: page) } %>
+  <% end %>
 </div>

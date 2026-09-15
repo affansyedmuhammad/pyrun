@@ -15,7 +15,12 @@ Rails.application.routes.draw do
 
   resources :passwords, param: :token, only: %i[new create edit update]
 
-  resources :runs, only: %i[index]
+  resources :runs, only: %i[index new create show]
+
+  # Superusers only (docs/DESIGN.md §4.16). Members get a 404 here.
+  namespace :admin do
+    resources :runs, only: :index
+  end
 
   # Health check for load balancers and uptime monitors. Unauthenticated, says only 200.
   get "up" => "rails/health#show", as: :rails_health_check

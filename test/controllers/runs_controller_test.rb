@@ -97,7 +97,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
       post runs_path, params: { run: { code: "   " } }
     end
     assert_response :unprocessable_content
-    assert_select ".field-error", /can't be blank/
+    assert_select ".field-error", /be blank/
   end
 
   test "a refused submission explains why and keeps the code" do

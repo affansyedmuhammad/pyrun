@@ -95,6 +95,54 @@
     @apply text-xl font-semibold tracking-tight;
   }
   .empty {
-    @apply mt-10 rounded-md border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500;
+    @apply mt-10 py-16 text-center text-sm text-zinc-500;
+  }
+  .section-title {
+    @apply text-xs font-medium uppercase tracking-wide text-zinc-500;
+  }
+
+  /* Run status */
+  .status {
+    @apply inline-flex items-center gap-2;
+  }
+  .status-dot {
+    @apply inline-block size-2 shrink-0 rounded-full;
+  }
+
+  /* Lists of runs */
+  .table {
+    @apply w-full text-sm;
+  }
+  .table th {
+    @apply border-b border-zinc-200 py-2 pr-4 text-left text-xs font-medium uppercase tracking-wide text-zinc-500 last:pr-0;
+  }
+  .table td {
+    @apply border-b border-zinc-100 py-3 pr-4 align-middle last:pr-0;
+  }
+  .table tbody tr:hover {
+    @apply bg-white;
+  }
+
+  /* Run details */
+  .meta {
+    @apply mt-6 grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4;
+  }
+  .meta dt {
+    @apply text-xs font-medium uppercase tracking-wide text-zinc-500;
+  }
+  .meta dd {
+    @apply mt-0.5 text-zinc-900;
+  }
+  .output {
+    @apply mt-2 max-h-[32rem] overflow-auto rounded-md border border-zinc-200 bg-white p-4 font-mono text-[13px] leading-5 whitespace-pre-wrap break-words text-zinc-900;
+  }
+  .output-stderr {
+    @apply border-red-200 bg-red-50 text-red-900;
+  }
+  .output-empty {
+    @apply mt-2 text-sm text-zinc-500;
+  }
+  .note {
+    @apply mt-2 text-xs text-zinc-500;
   }
 }

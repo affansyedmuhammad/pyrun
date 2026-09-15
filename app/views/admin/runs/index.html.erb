@@ -1,0 +1,18 @@
+<% content_for :title, "All runs" %>
+<div class="page">
+  <%= render "layouts/flash" %>
+  <h1 class="page-title">All runs</h1>
+
+  <%= form_with url: admin_runs_path, method: :get, class: "mt-6 flex flex-wrap items-end gap-3" do |f| %>
+    <div class="field w-80">
+      <%= f.label :email, "Owner", class: "field-label" %>
+      <%= f.text_field :email, value: @email, placeholder: "email contains…", class: "field-input" %>
+    </div>
+    <%= hidden_field_tag :status, @status if @status %>
+    <%= f.submit "Filter", variant: :secondary %>
+  <% end %>
+
+  <%= render "runs/filters", path: ->(status) { admin_runs_path(status: status, email: @email) }, status: @status %>
+  <%= render "runs/table", runs: @runs, show_owner: true %>
+  <%= render "runs/pagination", pagy: @pagy, path: ->(page) { admin_runs_path(status: @status, email: @email, page: page) } %>
+</div>

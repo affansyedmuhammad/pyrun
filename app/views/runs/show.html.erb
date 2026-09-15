@@ -1,0 +1,49 @@
+<% content_for :title, "Run ##{@run.id}" %>
+<%= turbo_stream_from @run %>
+<div class="page max-w-3xl">
+  <%= render "layouts/flash" %>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="page-title status"><%= status_dot(@run) %><%= status_label(@run) %></h1>
+      <p class="mt-1.5 text-sm text-zinc-500"><%= status_explanation(@run) %></p>
+    </div>
+    <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
+  </div>
+
+  <dl class="meta">
+    <div><dt>Run</dt><dd>#<%= @run.id %></dd></div>
+    <% if @run.user_id != Current.user.id %><div><dt>Owner</dt><dd><%= @run.user.email_address %></dd></div><% end %>
+    <div><dt>Submitted</dt><dd><%= relative_time(@run.created_at) %></dd></div>
+    <div><dt>Duration</dt><dd><%= format_duration(@run.duration_ms) %></dd></div>
+    <div><dt>Exit code</dt><dd><%= @run.exit_code.nil? ? "—" : @run.exit_code %></dd></div>
+    <div><dt>Runtime</dt><dd><%= @run.runtime_definition.label %></dd></div>
+    <div><dt>Limits</dt><dd><%= distance_of_time_in_words(@run.timeout_seconds) %> · <%= @run.memory_mb %> MB · <%= cpus_phrase(@run.cpus.to_f) %></dd></div>
+  </dl>
+
+  <section class="mt-8">
+    <h2 class="section-title">Output</h2>
+    <% if @run.finished? %>
+      <% if @run.stdout.present? %>
+        <pre class="output"><%= @run.stdout %></pre>
+      <% else %>
+        <p class="output-empty">Nothing was printed.</p>
+      <% end %>
+      <% if @run.stdout_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
+    <% else %>
+      <p class="output-empty">Output will appear here when the run finishes.</p>
+    <% end %>
+  </section>
+
+  <% if @run.stderr.present? %>
+    <section class="mt-8">
+      <h2 class="section-title">Errors</h2>
+      <pre class="output output-stderr"><%= @run.stderr %></pre>
+      <% if @run.stderr_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
+    </section>
+  <% end %>
+
+  <section class="mt-8">
+    <h2 class="section-title">Code</h2>
+    <pre class="output"><%= @run.code %></pre>
+  </section>
+</div>

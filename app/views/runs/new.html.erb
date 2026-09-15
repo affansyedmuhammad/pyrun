@@ -1,0 +1,22 @@
+<% content_for :title, "New run" %>
+<div class="page max-w-3xl">
+  <%= render "layouts/flash" %>
+  <h1 class="page-title">New run</h1>
+  <p class="mt-1.5 text-sm text-zinc-500"><%= Sandbox::Runtime.default.label %>. <%= limits_sentence %></p>
+
+  <%= form_with model: @run, url: runs_path, class: "mt-6 space-y-4" do |f| %>
+    <% if Sandbox::Runtime.all.many? %>
+      <div class="field">
+        <%= f.label :runtime, "Runtime", class: "field-label" %>
+        <%= f.select :runtime, Sandbox::Runtime.all.map { |r| [ r.label, r.key ] }, {}, class: "field-input" %>
+      </div>
+    <% end %>
+    <%= f.field :code, as: :textarea, label: "Code", rows: 18, spellcheck: false, autofocus: true,
+                class: "min-h-[24rem] resize-y font-mono text-[13px] leading-5",
+                data: { controller: "code-editor", action: "keydown->code-editor#keydown" } %>
+    <div class="flex items-center gap-4">
+      <%= f.submit "Run" %>
+      <span class="text-xs text-zinc-500">Ctrl or ⌘ + Enter also runs it.</span>
+    </div>
+  <% end %>
+</div>

@@ -15,6 +15,9 @@ class RunsTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Queued"
     page.execute_script("window.__stayed = true")
 
+    # The worker finishing is a broadcast, which Turbo sends through a debounced
+    # job; from here on jobs perform as soon as they are enqueued.
+    ActiveJob::Base.queue_adapter.perform_enqueued_jobs = true
     run = Run.order(:id).last
     Sandbox::FakeRunner.respond_with(Sandbox::Result.new(status: :succeeded, exit_code: 0, stdout: "hello from the sandbox\n", duration_ms: 812)) do
       ExecuteRunJob.perform_now(run)
@@ -26,6 +29,7 @@ class RunsTest < ApplicationSystemTestCase
   end
 
   test "the editor indents with Tab and submits with Cmd+Enter" do
+    ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)
     visit new_run_path
     editor = find_field("Code")

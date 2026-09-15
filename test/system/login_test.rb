@@ -5,7 +5,7 @@ class LoginTest < ApplicationSystemTestCase
 
   test "signing in and out" do
     sign_in users(:verified)
-    assert_text "No runs yet"
+    assert_selector "h1", text: "Runs"
     assert_selector "header", text: users(:verified).email_address
 
     click_button "Sign out"

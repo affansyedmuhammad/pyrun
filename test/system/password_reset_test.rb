@@ -23,6 +23,6 @@ class PasswordResetTest < ApplicationSystemTestCase
     fill_in "Email", with: user.email_address
     fill_in "Password", with: NEW_PASSWORD
     click_button "Sign in"
-    assert_text "No runs yet"
+    assert_selector "h1", text: "Runs"
   end
 end
