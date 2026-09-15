@@ -82,6 +82,26 @@ class RunsTest < ApplicationSystemTestCase
     assert_selector ".cm-content", text: "raise RuntimeError('boom')"
   end
 
+  test "arrow keys and the pager step through my runs" do
+    sign_in users(:verified)
+    visit run_path(runs(:verified_failed))
+    assert_selector "h1", text: "Failed"
+
+    find("body").send_keys(:arrow_right)
+    assert_selector "h1", text: "Succeeded"
+    assert_current_path run_path(runs(:verified_succeeded))
+
+    find("body").send_keys(:arrow_right)
+    assert_selector "h1", text: "Succeeded", wait: 1 # nothing older: stays put
+    assert_current_path run_path(runs(:verified_succeeded))
+
+    find("body").send_keys(:arrow_left)
+    assert_selector "h1", text: "Failed"
+    click_link "Newer"
+    assert_selector "h1", text: "Queued"
+    assert_current_path run_path(runs(:verified_queued))
+  end
+
   test "an admin can browse everyone's runs" do
     with_config(admin_emails: [ users(:admin).email_address ]) do
       sign_in users(:admin)

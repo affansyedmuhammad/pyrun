@@ -37,6 +37,26 @@ class RunTest < ActiveSupport::TestCase
     assert_equal [ runs(:verified_queued), runs(:verified_failed), runs(:verified_succeeded) ], users(:verified).runs.recent.to_a
   end
 
+  test "newer_than and older_than walk the recent order one step at a time" do
+    scope = users(:verified).runs
+    middle = runs(:verified_failed)
+    assert_equal runs(:verified_queued), scope.newer_than(middle).first
+    assert_equal runs(:verified_succeeded), scope.older_than(middle).first
+    assert_nil scope.newer_than(runs(:verified_queued)).first
+    assert_nil scope.older_than(runs(:verified_succeeded)).first
+  end
+
+  test "runs created in the same instant are ordered by id" do
+    at = Time.current
+    first, second = 2.times.map do |i|
+      users(:verified).runs.create!(code: "print(#{i})", runtime: "python3.12", timeout_seconds: 1, memory_mb: 1, cpus: 1, pids_limit: 1, max_output_bytes: 1, queued_at: at, created_at: at)
+    end
+    scope = users(:verified).runs
+    assert_equal second, scope.newer_than(first).first
+    assert_equal first, scope.older_than(second).first
+    assert_equal [ second, first ], scope.recent.first(2)
+  end
+
   test "finished? is true for every terminal status" do
     assert runs(:verified_succeeded).finished?
     assert runs(:verified_failed).finished?

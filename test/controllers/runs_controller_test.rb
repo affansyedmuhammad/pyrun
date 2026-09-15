@@ -193,6 +193,38 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[disabled]", count: 0
   end
 
+  test "the run page links to the newer and older runs in my list" do
+    sign_in_as @user
+    get run_path(runs(:verified_failed))
+    assert_select "[data-controller=run-navigation][data-run-navigation-newer-value=?][data-run-navigation-older-value=?]",
+                  run_path(runs(:verified_queued)), run_path(runs(:verified_succeeded))
+    assert_select "a[href=?]", run_path(runs(:verified_queued)), text: /Newer/
+    assert_select "a[href=?]", run_path(runs(:verified_succeeded)), text: /Older/
+  end
+
+  test "the newest run has no newer link and the oldest no older link" do
+    sign_in_as @user
+    get run_path(runs(:verified_queued))
+    assert_select "a", text: /Newer/, count: 0
+    assert_select "span[aria-disabled=true]", text: /Newer/
+    assert_select "a[href=?]", run_path(runs(:verified_failed)), text: /Older/
+
+    get run_path(runs(:verified_succeeded))
+    assert_select "span[aria-disabled=true]", text: /Older/
+  end
+
+  test "neighbours never cross into another member's runs, but do for an admin" do
+    sign_in_as @user
+    get run_path(runs(:verified_succeeded))
+    assert_select "a[href=?]", run_path(runs(:admin_succeeded)), count: 0
+
+    with_config(admin_emails: [ users(:admin).email_address ]) do
+      sign_in_as users(:admin)
+      get run_path(runs(:verified_succeeded))
+      assert_select "a[href=?]", run_path(runs(:admin_succeeded)), text: /Older/
+    end
+  end
+
   test "a finished run has no clock" do
     sign_in_as @user
     get run_path(runs(:verified_succeeded))
