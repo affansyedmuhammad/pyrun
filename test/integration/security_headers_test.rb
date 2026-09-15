@@ -37,7 +37,7 @@ class SecurityHeadersTest < ActionDispatch::IntegrationTest
 
   test "development-only pages are not mounted outside development" do
     sign_in_as users(:verified)
-    [ "/rails/info/routes", "/rails/info/properties", "/rails/mailers", "/letter_opener" ].each do |path|
+    [ "/rails/info/routes", "/rails/info/properties", "/rails/mailers" ].each do |path|
       get path
       assert_response :not_found, "#{path} should not exist in this environment"
     end

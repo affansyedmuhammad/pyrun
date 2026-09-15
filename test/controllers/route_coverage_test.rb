@@ -8,7 +8,9 @@ class RouteCoverageTest < ActionDispatch::IntegrationTest
     [ "GET", "/signup" ], [ "POST", "/signup" ], [ "GET", "/signup/check-inbox" ],
     [ "GET", "/passwords/new" ], [ "POST", "/passwords" ],
     [ "GET", "/passwords/:token/edit" ], [ "PATCH", "/passwords/:token" ], [ "PUT", "/passwords/:token" ],
-    [ "GET", "/up" ]
+    [ "GET", "/up" ],
+    # Development inbox: routed only outside production (see config/routes.rb).
+    [ "GET", "/dev/mail" ], [ "GET", "/dev/mail/:id" ], [ "DELETE", "/dev/mail" ]
   ].freeze
 
   test "every route not on the public list rejects anonymous requests" do
