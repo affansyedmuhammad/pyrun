@@ -21,7 +21,10 @@ export default class extends Controller {
     this.wrapper.className = "editor"
     this.textarea.insertAdjacentElement("afterend", this.wrapper)
 
-    const nonce = document.querySelector("meta[name=csp-nonce]")?.content
+    // The document enforces the nonce it was loaded with; Turbo swaps the meta
+    // tag on every visit, so read it from the importmap script that came with
+    // the original page instead.
+    const nonce = document.querySelector("script[type=importmap]")?.nonce || document.querySelector("meta[name=csp-nonce]")?.content
     this.view = new EditorView({
       doc: this.textarea.value,
       parent: this.wrapper,

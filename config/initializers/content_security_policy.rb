@@ -15,6 +15,10 @@ Rails.application.configure do
     policy.form_action     :self
   end
 
-  config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+  # Turbo Drive keeps the document, and with it the CSP of the page it loaded,
+  # across visits. Anything that injects a nonced style or script later (the code
+  # editor does) needs the same nonce, so one random nonce is minted per session
+  # and kept in the session cookie: stable for that browser, unknown to any other.
+  config.content_security_policy_nonce_generator = ->(request) { request.session[:csp_nonce] ||= SecureRandom.base64(16) }
   config.content_security_policy_nonce_directives = %w[script-src style-src]
 end
