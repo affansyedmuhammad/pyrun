@@ -28,6 +28,19 @@ class RunsTest < ApplicationSystemTestCase
     assert page.evaluate_script("window.__stayed"), "the page must update in place, not reload"
   end
 
+  test "a running run shows the elapsed time ticking up and a bar filling toward the limit" do
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: 3.seconds.ago)
+    sign_in users(:verified)
+    visit run_path(run)
+
+    assert_selector "[data-elapsed-target=time]", text: /\A0:0[3-5]\z/
+    assert_selector "[data-elapsed-target=time]", text: /\A0:0[6-9]\z/, wait: 6
+    width = page.evaluate_script("document.querySelector('[data-elapsed-target=bar]').style.width")
+    assert_match(/\A\d+(\.\d+)?%\z/, width)
+    assert_operator width.to_f, :>, 0
+  end
+
   test "the editor indents with Tab and submits with Cmd+Enter" do
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)

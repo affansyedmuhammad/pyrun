@@ -149,11 +149,36 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", { text: /Nothing was printed/, count: 0 }
   end
 
-  test "a queued run says it is waiting and subscribes to updates" do
+  test "a queued run says it is waiting, counts the wait, and subscribes to updates" do
     sign_in_as @user
-    get run_path(runs(:verified_queued))
+    run = runs(:verified_queued)
+    get run_path(run)
     assert_select "h1", /Queued/
     assert_select "turbo-cable-stream-source"
+    assert_select "[data-controller=elapsed][data-elapsed-mode-value=queued]" do
+      assert_select "[data-elapsed-target=time]", /\A\d+:\d\d\z/
+      assert_select ".progress-bar-indeterminate"
+    end
+  end
+
+  test "a running run shows a live clock against its own limit" do
+    sign_in_as @user
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: 65.seconds.ago)
+    get run_path(run)
+    assert_select "h1", /Running/
+    assert_select "[data-controller=elapsed][data-elapsed-mode-value=running][data-elapsed-limit-value=?]", run.timeout_seconds.to_s do
+      assert_select "[data-elapsed-target=time]", /\A1:0[5-7]\z/
+      assert_select "[role=progressbar][aria-valuemax=?]", run.timeout_seconds.to_s
+      assert_select "[data-elapsed-target=bar]"
+    end
+    assert_select "span", /limit 2:00/
+  end
+
+  test "a finished run has no clock" do
+    sign_in_as @user
+    get run_path(runs(:verified_succeeded))
+    assert_select "[data-controller=elapsed]", count: 0
   end
 
   test "another user's run is not found" do
