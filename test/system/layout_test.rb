@@ -13,10 +13,18 @@ class LayoutTest < ApplicationSystemTestCase
     click_button "Sign in"
     assert_selector "h1", text: "Runs"
 
-    assert_selector ".sidebar-identity .identity-local", text: "a.rather.long.first.name"
-    assert_selector ".sidebar-identity .identity-domain", text: "@windbornesystems.com"
-    overflow = page.evaluate_script("[...document.querySelectorAll('.sidebar-identity, .sidebar-identity *')].some(el => el.scrollWidth > el.clientWidth + 1)")
-    assert_not overflow, "the address must wrap, never overflow or clip"
+    assert_selector ".sidebar-identity", text: "a.rather.long.first.name@windbornesystems.com"
+    overflow = page.evaluate_script("(el => el.scrollWidth > el.clientWidth + 1)(document.querySelector('.sidebar-identity'))")
+    assert_not overflow, "the address must wrap after the @, never overflow or clip"
+
+    # A typical company address fits on one line.
+    click_button "Sign out"
+    fill_in "Email", with: users(:verified).email_address
+    fill_in "Password", with: PASSWORD
+    click_button "Sign in"
+    assert_selector "h1", text: "Runs"
+    lines = page.evaluate_script("(el => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)))(document.querySelector('.sidebar-identity'))")
+    assert_equal 1, lines, "verified@windbornesystems.com should fit on one line"
   end
 
   test "on a wide screen the sidebar sits left and the page fills the rest; on a phone it stacks" do

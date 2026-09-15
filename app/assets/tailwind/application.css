@@ -166,7 +166,7 @@
   }
   .sidebar {
     @apply flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-200 bg-white px-4 py-2;
-    @apply md:sticky md:top-0 md:h-screen md:w-56 md:shrink-0 md:flex-col md:flex-nowrap md:items-stretch md:gap-0 md:border-b-0 md:border-r md:px-3 md:py-4;
+    @apply md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0 md:flex-col md:flex-nowrap md:items-stretch md:gap-0 md:border-b-0 md:border-r md:px-3 md:py-4;
   }
   .wordmark {
     @apply inline-flex items-center gap-2 font-mono text-sm font-semibold tracking-tight text-zinc-900 md:px-2.5 md:py-1.5;
@@ -187,8 +187,10 @@
     @apply ml-auto flex min-w-0 items-center gap-2 text-sm;
     @apply md:ml-0 md:mt-auto md:flex-col md:items-stretch md:gap-1 md:border-t md:border-zinc-200 md:px-2.5 md:pt-3;
   }
-  .sidebar-account span {
-    @apply hidden md:block;
+  /* The address is never cut off: one line when it fits, otherwise it breaks at the <wbr> after the @ */
+  .sidebar-identity {
+    @apply hidden min-w-0 text-xs leading-5 text-zinc-600 md:block;
+    overflow-wrap: normal;
   }
 
   /* Content pages use the width they are given; only the auth pages stay narrow */

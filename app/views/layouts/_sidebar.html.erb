@@ -18,7 +18,9 @@
   </nav>
 
   <div class="sidebar-account">
-    <span class="truncate text-zinc-500" title="<%= Current.user.email_address %>"><%= Current.user.email_address %></span>
+    <% local, domain = Current.user.email_address.split("@", 2) %>
+    <%# One line when it fits; a long address may break only right after the @. %>
+    <div class="sidebar-identity" title="<%= Current.user.email_address %>"><%= local %>@<wbr><%= domain %></div>
     <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-quiet h-8 px-2 shrink-0", form_class: "contents" %>
   </div>
 </aside>
