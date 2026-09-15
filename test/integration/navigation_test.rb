@@ -7,6 +7,16 @@ class NavigationTest < ActionDispatch::IntegrationTest
     assert_select "header a[href=?]", root_path, text: "pyrun"
   end
 
+  test "the wordmark carries the logo mark, signed in or out, and the favicon is the same mark" do
+    get login_path
+    assert_select "header a.wordmark svg.logo[aria-hidden=true]"
+    sign_in_as users(:verified)
+    get runs_path
+    assert_select "aside a.wordmark svg.logo[aria-hidden=true]"
+    assert File.exist?(Rails.root.join("public/icon.svg"))
+    assert_includes File.read(Rails.root.join("public/icon.svg")), "<svg"
+  end
+
   test "a signed-in member sees Runs in the sidebar with the current page marked, plus their address and sign out" do
     sign_in_as users(:verified)
     get runs_path

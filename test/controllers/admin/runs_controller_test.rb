@@ -37,8 +37,8 @@ module Admin
       with_config(admin_emails: [ users(:admin).email_address ]) do
         sign_in_as users(:admin)
         get admin_runs_path
-        assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed), from: "all"), text: "Open"
         assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed), from: "all"), text: /raise RuntimeError/
+        assert_select "tbody tr a", text: "Open", count: 0
       end
     end
 
