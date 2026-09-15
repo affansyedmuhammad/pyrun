@@ -22,6 +22,9 @@ module Pyrun
     # accessibility attributes are decided in one place.
     config.action_view.default_form_builder = "PyrunFormBuilder"
 
+    # Mail has its own queue so a backlog of runs never delays a verification link.
+    config.action_mailer.deliver_later_queue_name = :mailers
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

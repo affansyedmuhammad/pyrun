@@ -3,10 +3,15 @@ default: &default
     - polling_interval: 1
       batch_size: 500
   workers:
-    - queues: "*"
+    # Sandbox runs. Each thread holds a container for up to the timeout, so this
+    # number is host capacity; it is validated against HOST_MEMORY_MB at boot.
+    - queues: sandbox
+      threads: <%= Pyrun.config.sandbox_concurrency %>
+      polling_interval: 0.5
+    # Everything else (mail, Turbo broadcasts) never waits behind a run.
+    - queues: [ default, mailers ]
       threads: 3
-      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
-      polling_interval: 1
+      polling_interval: 0.1
 
 development:
   <<: *default

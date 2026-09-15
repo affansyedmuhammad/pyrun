@@ -9,6 +9,7 @@ class User < ApplicationRecord
 
   has_many :sessions, dependent: :destroy
   has_many :identities, dependent: :destroy
+  has_many :runs, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
@@ -41,6 +42,10 @@ class User < ApplicationRecord
   # Views and controllers ask named permissions, never admin? directly, so a
   # third role later is a change here and nowhere else.
   def can_view_all_runs? = admin?
+
+  # Every run lookup in every controller goes through this, so who may see what
+  # is decided in exactly one place.
+  def visible_runs = can_view_all_runs? ? Run.all : runs
 
   private
     def password_fits_bcrypt
