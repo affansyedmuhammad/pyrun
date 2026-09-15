@@ -27,6 +27,9 @@ en:
         self: "You can't deactivate your own account."
       reactivate:
         done: "Reactivated %{email}."
+      password_reset:
+        done: "Sent a password reset link to %{email}."
+        disabled: "That account is disabled. Reactivate it first."
       sessions:
         done: "Signed %{email} out everywhere."
   runs:

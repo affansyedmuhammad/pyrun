@@ -21,6 +21,7 @@
       <% if user.disabled? %>
         <%= button_to "Reactivate", reactivate_admin_user_path(user), class: "btn btn-quiet h-8 px-2", form_class: "contents" %>
       <% elsif user != Current.user %>
+        <%= button_to "Reset password", password_reset_admin_user_path(user), class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Emails them a link to choose a new password" %>
         <% if sessions.positive? %>
           <%= button_to "Sign out", sessions_admin_user_path(user), method: :delete, class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Sign out everywhere: ends #{pluralize(sessions, 'session')}" %>
         <% end %>

@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       member do
         post :deactivate
         post :reactivate
+        post :password_reset
         delete :sessions
       end
     end

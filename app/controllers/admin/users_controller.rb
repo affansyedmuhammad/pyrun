@@ -35,6 +35,18 @@ module Admin
       redirect_to admin_users_path, notice: t(".done", email: @user.email_address), status: :see_other
     end
 
+    # Sends the same reset mail the person could request themselves. An admin
+    # never sets or sees a password.
+    def password_reset
+      if @user.disabled?
+        redirect_to admin_users_path, alert: t(".disabled"), status: :see_other
+      else
+        UserMailer.password_reset(@user).deliver_later
+        Rails.logger.warn "admin.user_password_reset_sent admin=#{Current.user.id} user=#{@user.id}"
+        redirect_to admin_users_path, notice: t(".done", email: @user.email_address), status: :see_other
+      end
+    end
+
     def sessions
       @user.sessions.destroy_all
       Rails.logger.warn "admin.user_sessions_revoked admin=#{Current.user.id} user=#{@user.id}"
