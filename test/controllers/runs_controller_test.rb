@@ -264,7 +264,8 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     with_config(admin_emails: [ users(:admin).email_address ]) do
       sign_in_as users(:admin)
       get run_path(runs(:verified_succeeded))
-      assert_select "a[href=?]", run_path(runs(:admin_succeeded)), text: /Older/
+      # Someone else's run belongs to the all-runs list, so the pager keeps that context.
+      assert_select "a[href=?]", run_path(runs(:admin_succeeded), from: "all"), text: /Older/
     end
   end
 

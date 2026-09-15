@@ -32,8 +32,12 @@ class RunsController < ApplicationController
 
   def show
     @run = Current.user.visible_runs.find(params[:id])
-    @newer = Current.user.visible_runs.newer_than(@run).first
-    @older = Current.user.visible_runs.older_than(@run).first
+    # The list this page belongs to: the all-runs list when an admin came from
+    # there (from=all) or is looking at someone else's run; otherwise their own.
+    @from_all = (params[:from] == "all" && Current.user.can_view_all_runs?) || @run.user_id != Current.user.id
+    list = @from_all ? Current.user.visible_runs : Current.user.runs
+    @newer = list.newer_than(@run).first
+    @older = list.older_than(@run).first
     Rails.logger.info "admin.run_view admin=#{Current.user.id} run=#{@run.id}" if @run.user_id != Current.user.id
   end
 

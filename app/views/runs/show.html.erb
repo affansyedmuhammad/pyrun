@@ -9,10 +9,10 @@
 <div class="page">
   <%= render "layouts/flash" %>
   <p class="mb-4 text-sm">
-    <% if @run.user_id == Current.user.id %>
-      <%= link_to "&larr; Back to runs".html_safe, runs_path, class: "link" %>
-    <% else %>
+    <% if @from_all %>
       <%= link_to "&larr; Back to all runs".html_safe, admin_runs_path, class: "link" %>
+    <% else %>
+      <%= link_to "&larr; Back to runs".html_safe, runs_path, class: "link" %>
     <% end %>
   </p>
   <div class="flex items-start justify-between gap-4">
@@ -21,7 +21,7 @@
       <p class="mt-1.5 text-sm text-zinc-500"><%= status_explanation(@run) %></p>
     </div>
     <div class="flex flex-wrap items-center justify-end gap-2">
-      <%= render "runs/pager", newer: @newer, older: @older %>
+      <%= render "runs/pager", newer: @newer, older: @older, from: (@from_all ? "all" : nil) %>
       <% if @run.finished? %>
         <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
       <% else %>
