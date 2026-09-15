@@ -29,6 +29,14 @@ class AdminUsersTest < ApplicationSystemTestCase
         click_button "Reactivate"
       end
       assert_text "Reactivated verified@windbornesystems.com"
+
+      within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
+        click_button "Reset password"
+      end
+      assert_text "Sent a password reset link to verified@windbornesystems.com"
+      mail = ActionMailer::Base.deliveries.last
+      assert_equal [ "verified@windbornesystems.com" ], mail.to
+      assert_equal "Reset your password", mail.subject
     end
   end
 end

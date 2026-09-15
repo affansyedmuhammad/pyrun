@@ -113,6 +113,37 @@ module Admin
       assert_not user.disabled?
     end
 
+    test "sending a password reset mails the user a link and is logged" do
+      user = users(:verified)
+      as_admin do
+        assert_logged(/admin\.user_password_reset_sent admin=#{@admin.id} user=#{user.id}/) do
+          post password_reset_admin_user_path(user)
+        end
+        assert_enqueued_email_with UserMailer, :password_reset, args: [ user ]
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-notice", /reset link to verified@windbornesystems\.com/
+      end
+    end
+
+    test "a password reset is refused for a disabled account" do
+      user = users(:disabled)
+      as_admin do
+        post password_reset_admin_user_path(user)
+        assert_enqueued_emails 0
+        assert_redirected_to admin_users_path
+        follow_redirect!
+        assert_select ".flash-alert", /Reactivate/
+      end
+    end
+
+    test "the reset button is offered for active and unverified accounts only" do
+      as_admin { get admin_users_path }
+      assert_select "form[action=?]", password_reset_admin_user_path(users(:verified))
+      assert_select "form[action=?]", password_reset_admin_user_path(users(:unverified))
+      assert_select "form[action=?]", password_reset_admin_user_path(users(:disabled)), count: 0
+    end
+
     test "an admin cannot deactivate their own account" do
       as_admin do
         post deactivate_admin_user_path(@admin)
