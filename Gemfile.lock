@@ -114,6 +114,9 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     dotenv (3.2.0)
+    dotenv-rails (3.2.0)
+      dotenv (= 3.2.0)
+      railties (>= 6.1)
     drb (2.2.3)
     ed25519 (1.4.0)
     erb (6.0.7)
@@ -409,6 +412,7 @@ DEPENDENCIES
   capybara
   capybara-playwright-driver
   debug
+  dotenv-rails
   importmap-rails
   json (< 3)
   kamal

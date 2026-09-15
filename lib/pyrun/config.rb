@@ -9,7 +9,7 @@ module Pyrun
 
     # name => [env var, parser, default]
     SETTINGS = {
-      allowed_emails:             [ "ALLOWED_EMAILS",             :email_list,  ["affansyedmuhammad@gmail.com"] ],
+      allowed_emails:             [ "ALLOWED_EMAILS",             :email_list,  [] ],
       allowed_email_domains:      [ "ALLOWED_EMAIL_DOMAINS",      :domain_list, [ "windbornesystems.com" ] ],
       admin_emails:               [ "ADMIN_EMAILS",               :email_list,  [] ],
       require_email_verification: [ "REQUIRE_EMAIL_VERIFICATION", :boolean,     true ],

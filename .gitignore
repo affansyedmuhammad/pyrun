@@ -39,3 +39,8 @@
 
 # Node is only used for Playwright in system tests
 /node_modules
+
+# Personal development settings (see .env.example)
+/.env
+/.env.*
+!/.env.example

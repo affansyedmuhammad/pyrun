@@ -67,6 +67,9 @@ group :development do
   gem "web-console"
   # Verification and reset mail opens in the browser at /letter_opener.
   gem "letter_opener_web"
+  # Loads .env into ENV in development so personal settings (your own address in
+  # ALLOWED_EMAILS, ADMIN_EMAILS) live in a gitignored file, never in the code.
+  gem "dotenv-rails"
 end
 
 group :test do
