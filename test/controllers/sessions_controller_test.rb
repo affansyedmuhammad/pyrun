@@ -22,6 +22,13 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "password", user.sessions.order(:id).last.login_method
   end
 
+  test "signing in records the time on the user" do
+    user = users(:verified)
+    assert_nil user.last_signed_in_at
+    post login_path, params: { email_address: user.email_address, password: PASSWORD }
+    assert_in_delta Time.current, user.reload.last_signed_in_at, 2.seconds
+  end
+
   test "signing in returns to the page that asked for it, query string included" do
     get runs_path(status: "failed")
     assert_redirected_to login_path

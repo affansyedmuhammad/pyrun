@@ -143,6 +143,41 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
+  test "deactivate! disables the account and ends every session; reactivate! undoes the flag" do
+    user = users(:verified)
+    assert_operator user.sessions.count, :>, 0
+    user.deactivate!
+    assert user.reload.disabled?
+    assert_empty user.sessions
+    user.reactivate!
+    assert_not user.reload.disabled?
+  end
+
+  test "account_status is disabled, unverified, or active, in that order of precedence" do
+    assert_equal "active", users(:verified).account_status
+    assert_equal "unverified", users(:unverified).account_status
+    assert_equal "disabled", users(:disabled).account_status
+    users(:unverified).update!(disabled_at: Time.current)
+    assert_equal "disabled", users(:unverified).reload.account_status
+  end
+
+  test "with_account_status filters and ignores unknown values" do
+    assert_includes User.with_account_status("disabled"), users(:disabled)
+    assert_not_includes User.with_account_status("disabled"), users(:verified)
+    assert_includes User.with_account_status("unverified"), users(:unverified)
+    assert_not_includes User.with_account_status("unverified"), users(:disabled)
+    assert_includes User.with_account_status("active"), users(:verified)
+    assert_not_includes User.with_account_status("active"), users(:unverified)
+    assert_equal User.count, User.with_account_status("nonsense").count
+  end
+
+  test "can_manage_users? follows the admin list like can_view_all_runs?" do
+    with_config(admin_emails: [ "admin@windbornesystems.com" ]) do
+      assert users(:admin).can_manage_users?
+      assert_not users(:verified).can_manage_users?
+    end
+  end
+
   test "disabled?" do
     assert users(:disabled).disabled?
     assert_not users(:verified).disabled?
