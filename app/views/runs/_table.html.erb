@@ -14,7 +14,7 @@
         <tr>
           <td><span class="status"><%= status_dot(run) %><%= status_label(run) %></span></td>
           <% if show_owner %><td class="whitespace-nowrap text-zinc-500"><%= run.user.email_address %></td><% end %>
-          <td class="w-full max-w-0"><%= link_to run.first_line, run_path(run), class: "block truncate font-mono text-[13px] text-zinc-900" %></td>
+          <td class="w-full min-w-48 max-w-0"><%= link_to run.first_line, run_path(run), class: "block truncate font-mono text-[13px] text-zinc-900" %></td>
           <td class="whitespace-nowrap text-right tabular-nums text-zinc-500"><%= format_duration(run.duration_ms) %></td>
           <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(run.created_at) %></td>
         </tr>

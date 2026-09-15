@@ -1,0 +1,9 @@
+<%# Signed-out pages: just the wordmark (and the development inbox). %>
+<header class="border-b border-zinc-200 bg-white">
+  <div class="flex h-14 items-center gap-4 px-6">
+    <%= link_to Pyrun.config.app_name, root_path, class: "wordmark" %>
+    <% if Rails.env.development? %>
+      <%= link_to "Mail", dev_mail_path, class: "text-sm text-zinc-500 hover:text-zinc-900", title: "Development inbox" %>
+    <% end %>
+  </div>
+</header>

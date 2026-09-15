@@ -160,8 +160,37 @@
   .auth-foot {
     @apply mt-6 text-sm text-zinc-500;
   }
+  /* App shell: sidebar plus content on wide screens, stacked on phones */
+  .shell {
+    @apply md:flex md:min-h-screen;
+  }
+  .sidebar {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-200 bg-white px-4 py-2;
+    @apply md:sticky md:top-0 md:h-screen md:w-56 md:shrink-0 md:flex-col md:flex-nowrap md:items-stretch md:gap-0 md:border-b-0 md:border-r md:px-3 md:py-4;
+  }
+  .wordmark {
+    @apply font-mono text-sm font-semibold tracking-tight text-zinc-900 md:px-2.5 md:py-1.5;
+  }
+  .sidebar-nav {
+    @apply flex flex-wrap items-center gap-1 md:mt-6 md:flex-col md:items-stretch md:gap-0.5;
+  }
+  .nav-item {
+    @apply rounded-md px-2.5 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900;
+  }
+  .nav-item-active {
+    @apply bg-zinc-100 font-medium text-zinc-900;
+  }
+  .sidebar-account {
+    @apply ml-auto flex min-w-0 items-center gap-2 text-sm;
+    @apply md:ml-0 md:mt-auto md:flex-col md:items-stretch md:gap-1 md:border-t md:border-zinc-200 md:px-2.5 md:pt-3;
+  }
+  .sidebar-account span {
+    @apply hidden md:block;
+  }
+
+  /* Content pages use the width they are given; only the auth pages stay narrow */
   .page {
-    @apply mx-auto w-full max-w-5xl px-6 py-10;
+    @apply w-full px-6 py-8 md:px-10;
   }
   .page-title {
     @apply text-xl font-semibold tracking-tight;
@@ -219,7 +248,7 @@
 
   /* Run details */
   .meta {
-    @apply mt-6 grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4;
+    @apply mt-6 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4;
   }
   .meta dt {
     @apply text-xs font-medium uppercase tracking-wide text-zinc-500;

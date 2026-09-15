@@ -18,6 +18,9 @@ class NavigationTest < ActionDispatch::IntegrationTest
 
     get new_run_path
     assert_select "aside nav a[href=?][aria-current=page]", runs_path, text: "Runs" # run pages belong to Runs
+
+    get root_path
+    assert_select "aside nav a[href=?][aria-current=page]", runs_path, text: "Runs" # the root is the runs page
   end
 
   test "an admin also sees All runs and Users, each marked only on its own pages" do

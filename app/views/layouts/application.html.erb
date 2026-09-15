@@ -17,10 +17,22 @@
   </head>
 
   <body>
-    <%= render "layouts/header" %>
-    <%= render "layouts/verification_banner" %>
-    <main>
-      <%= content_for?(:frame) ? yield(:frame) : yield %>
-    </main>
+    <% if authenticated? %>
+      <div class="shell">
+        <%= render "layouts/sidebar" %>
+        <div class="min-w-0 flex-1">
+          <%= render "layouts/verification_banner" %>
+          <main>
+            <%= content_for?(:frame) ? yield(:frame) : yield %>
+          </main>
+        </div>
+      </div>
+    <% else %>
+      <%= render "layouts/topbar" %>
+      <%= render "layouts/verification_banner" %>
+      <main>
+        <%= content_for?(:frame) ? yield(:frame) : yield %>
+      </main>
+    <% end %>
   </body>
 </html>

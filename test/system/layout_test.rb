@@ -14,7 +14,7 @@ class LayoutTest < ApplicationSystemTestCase
     aside = rect("aside")
     main = rect("main")
     content = rect(".page")
-    assert_operator aside[:width], :between?, 180, 320
+    assert_includes 180..320, aside[:width]
     assert_operator main[:left], :>=, aside[:right] - 1, "main must start to the right of the sidebar"
     assert_operator content[:width], :>, 1150, "the page must use the width available, not stop at a fixed limit"
 

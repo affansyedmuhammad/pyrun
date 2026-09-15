@@ -1,0 +1,24 @@
+<%# Signed-in navigation: a left column on wide screens, a compact strip on phones. %>
+<aside class="sidebar">
+  <%= link_to Pyrun.config.app_name, root_path, class: "wordmark" %>
+
+  <nav class="sidebar-nav" aria-label="Main">
+    <% if Current.user.verified? %>
+      <%= nav_link "Runs", runs_path, active: request.path == "/" || in_section?("/runs") %>
+      <% if Current.user.can_view_all_runs? %>
+        <%= nav_link "All runs", admin_runs_path, active: in_section?("/admin/runs") %>
+      <% end %>
+      <% if Current.user.can_manage_users? %>
+        <%= nav_link "Users", admin_users_path, active: in_section?("/admin/users") %>
+      <% end %>
+    <% end %>
+    <% if Rails.env.development? %>
+      <%= nav_link "Mail", dev_mail_path, active: in_section?("/dev/mail") %>
+    <% end %>
+  </nav>
+
+  <div class="sidebar-account">
+    <span class="truncate text-zinc-500" title="<%= Current.user.email_address %>"><%= Current.user.email_address %></span>
+    <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-quiet h-8 px-2 shrink-0", form_class: "contents" %>
+  </div>
+</aside>
