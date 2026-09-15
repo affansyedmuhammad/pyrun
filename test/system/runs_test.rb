@@ -58,13 +58,15 @@ class RunsTest < ApplicationSystemTestCase
     assert_equal "flex", page.evaluate_script("getComputedStyle(document.querySelector('.cm-editor')).display")
   end
 
-  test "the editor survives repeated failed submissions, which Turbo renders by morphing" do
+  test "the editor survives repeated failed submissions" do
     sign_in users(:verified)
     click_link "New run"
     assert_selector ".cm-editor"
+    page.execute_script("window.__submits = 0; document.addEventListener('turbo:submit-end', () => window.__submits++)")
 
-    3.times do
+    3.times do |i|
       click_button "Run"
+      assert_submission_rendered(i + 1)
       assert_selector ".field-error", text: /blank/
       assert_selector ".cm-editor .cm-gutter", text: "1"
       assert_equal 1, page.evaluate_script("document.querySelectorAll('.cm-editor').length")
@@ -149,6 +151,14 @@ class RunsTest < ApplicationSystemTestCase
   end
 
   private
+    # Each Turbo form submission ends with turbo:submit-end; wait for the nth one so
+    # assertions never run against the previous render.
+    def assert_submission_rendered(count)
+      deadline = Time.now + Capybara.default_max_wait_time
+      sleep 0.05 until page.evaluate_script("window.__submits") >= count || Time.now > deadline
+      assert_operator page.evaluate_script("window.__submits"), :>=, count, "submission #{count} never finished"
+    end
+
     # The textarea is hidden behind the CodeMirror editor; type where a person would.
     def fill_in_code(text)
       editor = find(".cm-content")

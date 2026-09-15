@@ -14,9 +14,26 @@ import { classHighlighter } from "@lezer/highlight"
 // numbers, bracket matching, indentation after a colon, Tab to indent, and
 // Ctrl/Cmd+Enter to run. The textarea stays in the form (hidden) and is kept in
 // sync, so submission and the no-JavaScript path are unchanged.
+//
+// This page is rendered by replacement, never morphed (morphing is opted into
+// on the run page only), so Stimulus reconnects on every render and the
+// editor is rebuilt from the server's textarea each time.
 export default class extends Controller {
   connect() {
     this.textarea = this.element
+    this.mount()
+
+    // Turbo snapshots the page for its cache; hand it back the plain textarea.
+    this.onBeforeCache = () => this.unmount()
+    document.addEventListener("turbo:before-cache", this.onBeforeCache)
+  }
+
+  disconnect() {
+    document.removeEventListener("turbo:before-cache", this.onBeforeCache)
+    this.unmount()
+  }
+
+  mount() {
     this.wrapper = document.createElement("div")
     this.wrapper.className = "editor"
     this.textarea.insertAdjacentElement("afterend", this.wrapper)
@@ -25,6 +42,7 @@ export default class extends Controller {
     // tag on every visit, so read it from the importmap script that came with
     // the original page instead.
     const nonce = document.querySelector("script[type=importmap]")?.nonce || document.querySelector("meta[name=csp-nonce]")?.content
+
     this.view = new EditorView({
       doc: this.textarea.value,
       parent: this.wrapper,
@@ -48,14 +66,9 @@ export default class extends Controller {
 
     this.textarea.hidden = true
     if (this.textarea.autofocus) this.view.focus()
-
-    // Turbo snapshots the page for its cache; hand it back the plain textarea.
-    this.teardown = () => this.disconnect()
-    document.addEventListener("turbo:before-cache", this.teardown, { once: true })
   }
 
-  disconnect() {
-    document.removeEventListener("turbo:before-cache", this.teardown)
+  unmount() {
     this.view?.destroy()
     this.view = null
     this.wrapper?.remove()

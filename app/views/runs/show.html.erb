@@ -1,4 +1,10 @@
 <% content_for :title, "Run ##{@run.id}" %>
+<%# Live updates arrive as Turbo refreshes; morphing keeps scroll and focus. Only
+    this page opts in: pages with JavaScript-built widgets are safer replaced. %>
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
+<% end %>
 <%= turbo_stream_from @run %>
 <div class="page max-w-3xl">
   <%= render "layouts/flash" %>
