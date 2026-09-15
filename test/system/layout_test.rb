@@ -3,6 +3,22 @@ require "application_system_test_case"
 class LayoutTest < ApplicationSystemTestCase
   PASSWORD = "correct horse battery staple"
 
+  test "a long address in the sidebar wraps instead of being cut off" do
+    long = users(:google_only)
+    long.update!(email_address: "a.rather.long.first.name@windbornesystems.com", password: "Correct-Horse-Battery-9", password_confirmation: "Correct-Horse-Battery-9")
+    page.current_window.resize_to(1600, 900)
+    visit login_path
+    fill_in "Email", with: long.email_address
+    fill_in "Password", with: "Correct-Horse-Battery-9"
+    click_button "Sign in"
+    assert_selector "h1", text: "Runs"
+
+    assert_selector ".sidebar-identity .identity-local", text: "a.rather.long.first.name"
+    assert_selector ".sidebar-identity .identity-domain", text: "@windbornesystems.com"
+    overflow = page.evaluate_script("[...document.querySelectorAll('.sidebar-identity, .sidebar-identity *')].some(el => el.scrollWidth > el.clientWidth + 1)")
+    assert_not overflow, "the address must wrap, never overflow or clip"
+  end
+
   test "on a wide screen the sidebar sits left and the page fills the rest; on a phone it stacks" do
     page.current_window.resize_to(1600, 900)
     visit login_path

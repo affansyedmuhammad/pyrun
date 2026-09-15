@@ -23,7 +23,10 @@ class NavigationTest < ActionDispatch::IntegrationTest
     assert_select "aside nav[aria-label=Main] a[href=?][aria-current=page]", runs_path, text: "Runs"
     assert_select "aside nav[aria-label=Main] a[href=?]", admin_runs_path, count: 0
     assert_select "aside nav[aria-label=Main] a[href=?]", admin_users_path, count: 0
-    assert_select "aside", text: /verified@windbornesystems\.com/
+    assert_select "aside .sidebar-identity[title=?]", "verified@windbornesystems.com" do
+      assert_select ".identity-local", "verified"
+      assert_select ".identity-domain", "@windbornesystems.com"
+    end
     assert_select "aside form[action=?] button", logout_path, text: "Sign out"
 
     get new_run_path
