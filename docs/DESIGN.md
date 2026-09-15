@@ -877,6 +877,43 @@ CI (GitHub Actions, from the Rails template): rubocop, brakeman, bundler-audit, 
 
 ---
 
+## 12a. Database: SQLite now, Postgres later (a deliberate choice)
+
+The app ships on SQLite and I would run the internal demo on it. This is a
+decision with a known trigger, not an oversight. Interview-ready form:
+
+**Why SQLite is the right call for now.** This is an internal tool for a team,
+not a public service. Writes are small, fast, and rarely simultaneous. Rails 8
+was built to make SQLite production-grade and applies the right pragmas by
+default (verified live): `journal_mode=WAL` so readers and writers don't block
+each other, `synchronous=NORMAL`, `foreign_keys=ON`, `mmap_size=128MB`, and a
+5-second busy handler set from `timeout: 5000` (installed at the driver level,
+so `PRAGMA busy_timeout` reads 0 while the wait is real). The noisiest writer,
+Solid Queue's job churn, lives in a **separate** `production_queue.sqlite3`,
+with cache and cable split off too, so it never contends with a person
+submitting a run. Zero setup for a reviewer, and one less moving part in the
+demo.
+
+**What SQLite costs, and why it is not free.**
+- **Single host.** The database is a local file, so the app is pinned to one
+  server. Workers are otherwise stateless and horizontal; the DB is the one
+  thing stopping a second node. This is the real ceiling, not write speed.
+- **Backups are volume snapshots, not managed point-in-time recovery.** Restore
+  means data loss back to the last snapshot, and a live-file snapshot needs a
+  WAL checkpoint first.
+- **Writers serialize.** WAL removes reader/writer blocking, but two writers
+  still queue; a long write (a big migration, a bulk retention delete) holds the
+  lock for its duration.
+- **No online replication or failover.** One file, one volume, one point of
+  failure.
+
+**The trigger to move to Postgres (RDS).** Any one of: a second app/worker node
+is needed for availability or load; managed backups and failover become a
+requirement; or the run history becomes data that cannot be lost. The move is a
+`database.yml` change plus a data copy, because nothing in the schema or the
+queries is SQLite-specific. Until then, Postgres would be operational complexity
+bought before it is needed.
+
 ## 12. Scaling and evolution
 
 What breaks first, and what I would do:
