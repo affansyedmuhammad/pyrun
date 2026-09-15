@@ -1,16 +1,22 @@
 Rails.application.routes.draw do
-  resource :session
-  resources :passwords, param: :token
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  root "runs#index"
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Accounts. Every route below is private unless listed in test/controllers/route_coverage_test.rb.
+  get    "signup", to: "registrations#new", as: :signup
+  post   "signup", to: "registrations#create"
+  get    "signup/check-inbox", to: "registrations#check_inbox", as: :check_inbox
+  get    "login",  to: "sessions#new", as: :login
+  post   "login",  to: "sessions#create"
+  delete "logout", to: "sessions#destroy", as: :logout
+
+  get  "verify-email",        to: "email_verifications#pending", as: :pending_email_verification
+  post "verify-email",        to: "email_verifications#create",  as: :email_verifications
+  get  "verify-email/:token", to: "email_verifications#show",    as: :email_verification
+
+  resources :passwords, param: :token, only: %i[new create edit update]
+
+  resources :runs, only: %i[index]
+
+  # Health check for load balancers and uptime monitors. Unauthenticated, says only 200.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end

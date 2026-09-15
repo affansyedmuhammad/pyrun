@@ -23,20 +23,20 @@ class UserTest < ActiveSupport::TestCase
   test "password must be at least 12 characters" do
     user = build_user(password: "short pass", password_confirmation: "short pass")
     assert_not user.valid?
-    assert_includes user.errors[:password], "is too short (minimum is 12 characters)"
+    assert_includes user.errors[:password], "must be at least 12 characters"
   end
 
   test "password must fit in bcrypt's 72 bytes" do
     long = "x" * 73
     user = build_user(password: long, password_confirmation: long)
     assert_not user.valid?
-    assert user.errors[:password].any? { |m| m.include?("too long") }
+    assert_includes user.errors[:password], "must be at most 72 bytes"
   end
 
   test "password confirmation must match" do
     user = build_user(password: PASSWORD, password_confirmation: PASSWORD + "!")
     assert_not user.valid?
-    assert_includes user.errors[:password_confirmation], "doesn't match Password"
+    assert_includes user.errors[:password_confirmation], "doesn't match the password"
   end
 
   test "password may not be the email address" do

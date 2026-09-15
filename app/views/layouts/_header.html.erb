@@ -1,0 +1,14 @@
+<header class="border-b border-zinc-200 bg-white">
+  <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+    <%= link_to Pyrun.config.app_name, root_path, class: "font-mono text-sm font-semibold tracking-tight" %>
+    <% if authenticated? %>
+      <nav class="flex items-center gap-1 text-sm" aria-label="Account">
+        <% if Current.user.verified? %>
+          <%= link_to "Runs", runs_path, class: "btn btn-quiet" %>
+        <% end %>
+        <span class="ml-3 hidden text-zinc-500 sm:inline"><%= Current.user.email_address %></span>
+        <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-quiet ml-1", form_class: "contents" %>
+      </nav>
+    <% end %>
+  </div>
+</header>

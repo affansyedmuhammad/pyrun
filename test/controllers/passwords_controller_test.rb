@@ -57,7 +57,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   test "updating sets the password, ends every session, and sends the user to sign in" do
     other_session = @user.sessions.create!
     token = @user.generate_token_for(:password_reset)
-    patch password_path(token), params: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD }
+    patch password_path(token), params: { user: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD } }
     assert_redirected_to login_path
     assert @user.reload.authenticate(NEW_PASSWORD)
     assert_not Session.exists?(other_session.id)
@@ -66,28 +66,28 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
 
   test "completing a reset proves the address, so an unverified user becomes verified" do
     user = users(:unverified)
-    patch password_path(user.generate_token_for(:password_reset)), params: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD }
+    patch password_path(user.generate_token_for(:password_reset)), params: { user: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD } }
     assert user.reload.verified?
   end
 
   test "a passwordless account can add a password through a reset" do
     user = users(:google_only)
-    patch password_path(user.generate_token_for(:password_reset)), params: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD }
+    patch password_path(user.generate_token_for(:password_reset)), params: { user: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD } }
     assert user.reload.authenticate(NEW_PASSWORD)
   end
 
   test "a weak password re-renders the form with the reason" do
     token = @user.generate_token_for(:password_reset)
-    patch password_path(token), params: { password: "short", password_confirmation: "short" }
+    patch password_path(token), params: { user: { password: "short", password_confirmation: "short" } }
     assert_response :unprocessable_content
-    assert_select ".field-error", /minimum is 12 characters/
+    assert_select ".field-error", /at least 12 characters/
     assert @user.reload.authenticate(PASSWORD)
   end
 
   test "a reset link is dead once used" do
     token = @user.generate_token_for(:password_reset)
-    patch password_path(token), params: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD }
-    patch password_path(token), params: { password: NEW_PASSWORD + "2", password_confirmation: NEW_PASSWORD + "2" }
+    patch password_path(token), params: { user: { password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD } }
+    patch password_path(token), params: { user: { password: NEW_PASSWORD + "2", password_confirmation: NEW_PASSWORD + "2" } }
     assert_redirected_to new_password_path
     assert @user.reload.authenticate(NEW_PASSWORD)
   end

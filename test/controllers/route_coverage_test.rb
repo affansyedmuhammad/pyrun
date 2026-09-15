@@ -5,7 +5,7 @@ require "test_helper"
 class RouteCoverageTest < ActionDispatch::IntegrationTest
   PUBLIC = [
     [ "GET", "/login" ], [ "POST", "/login" ],
-    [ "GET", "/signup" ], [ "POST", "/signup" ],
+    [ "GET", "/signup" ], [ "POST", "/signup" ], [ "GET", "/signup/check-inbox" ],
     [ "GET", "/passwords/new" ], [ "POST", "/passwords" ],
     [ "GET", "/passwords/:token/edit" ], [ "PATCH", "/passwords/:token" ], [ "PUT", "/passwords/:token" ],
     [ "GET", "/up" ]
@@ -35,6 +35,8 @@ class RouteCoverageTest < ActionDispatch::IntegrationTest
       Rails.application.routes.routes.flat_map do |route|
         spec = route.path.spec.to_s.sub("(.:format)", "")
         next [] if route.verb.blank? || spec.start_with?("/rails/", "/assets")
+        # turbo-rails adds three static pages for Turbo Native history handling.
+        next [] if route.defaults[:controller].to_s.start_with?("turbo/")
         route.verb.split("|").map { |verb| [ verb, spec ] }
       end
     end

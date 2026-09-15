@@ -45,12 +45,12 @@ class User < ApplicationRecord
   private
     def password_fits_bcrypt
       return if password.nil? || password.bytesize <= PASSWORD_MAX_BYTES
-      errors.add(:password, "is too long (maximum is #{PASSWORD_MAX_BYTES} bytes)")
+      errors.add(:password, :too_long_bytes, count: PASSWORD_MAX_BYTES)
     end
 
     def password_is_not_the_email_address
       return if password.nil? || email_address.blank?
-      errors.add(:password, "can't be your email address") if password.strip.downcase == email_address
+      errors.add(:password, :is_email) if password.strip.downcase == email_address
     end
 
     def has_a_login_method

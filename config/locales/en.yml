@@ -3,3 +3,41 @@
 en:
   registrations:
     domain_restricted: "Sign-ups are limited to %{domains} addresses."
+  sessions:
+    create:
+      failed: "Try another email address or password."
+    destroy:
+      signed_out: "You have been signed out."
+  email_verifications:
+    create:
+      sent: "We sent a new link to %{email}."
+    show:
+      expired: "That link has expired. Send yourself a new one below."
+      verified: "Email verified. Welcome."
+  passwords:
+    invalid_token: "That link is invalid or has expired. Request a new one."
+    create:
+      sent: "If that address has an account, instructions are on their way."
+    update:
+      updated: "Password updated. Sign in with your new password."
+  user_mailer:
+    email_verification:
+      subject: "Verify your email address"
+    password_reset:
+      subject: "Reset your password"
+    existing_account:
+      subject: "You already have an account"
+  activerecord:
+    errors:
+      models:
+        user:
+          attributes:
+            email_address:
+              blank: "can't be blank"
+              invalid: "isn't a valid email address"
+            password:
+              too_short: "must be at least %{count} characters"
+              too_long_bytes: "must be at most %{count} bytes"
+              is_email: "can't be your email address"
+            password_confirmation:
+              confirmation: "doesn't match the password"

@@ -18,6 +18,10 @@ module Pyrun
     # the reloadable autoloader exists, so it is required explicitly, not autoloaded.
     config.autoload_lib(ignore: %w[assets tasks pyrun])
 
+    # Every form field is rendered by one builder, so labels, hints, errors, and
+    # accessibility attributes are decided in one place.
+    config.action_view.default_form_builder = "PyrunFormBuilder"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

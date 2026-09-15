@@ -17,7 +17,8 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     end
     user = User.find_by!(email_address: "new.person@windbornesystems.com")
     assert_not user.verified?
-    assert_response :success
+    assert_redirected_to check_inbox_path
+    follow_redirect!
     assert_select "h1", "Check your inbox"
     assert_select "p", /new\.person@windbornesystems\.com/
     assert cookies[:session_id].present?
@@ -31,7 +32,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
         sign_up "me@example.com"
       end
     end
-    assert_response :success
+    assert_redirected_to check_inbox_path
   end
 
   test "signing up outside the allowlist creates nothing and names the allowed domain" do
@@ -56,8 +57,10 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference "User.count" do
       sign_up existing.email_address, password: "an entirely different one"
     end
-    assert_response :success
+    assert_redirected_to check_inbox_path
+    follow_redirect!
     assert_select "h1", "Check your inbox"
+    assert_select "p", /verified@windbornesystems\.com/
     assert_nil cookies[:session_id].presence
     assert_enqueued_email_with UserMailer, :existing_account, args: [ existing ]
     assert existing.reload.authenticate(PASSWORD), "the existing password must survive"
@@ -66,14 +69,20 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
   test "a short password is rejected with the reason" do
     sign_up "new@windbornesystems.com", password: "short"
     assert_response :unprocessable_content
-    assert_select ".field-error", /minimum is 12 characters/
+    assert_select ".field-error", /at least 12 characters/
     assert_nil User.find_by(email_address: "new@windbornesystems.com")
   end
 
   test "a password that is the email address is rejected" do
     sign_up "new.person@windbornesystems.com", password: "new.person@windbornesystems.com"
     assert_response :unprocessable_content
-    assert_select ".field-error", /can't be your email address/
+    assert_select ".field-error", /be your email address/
+  end
+
+  test "the check-inbox page can be opened directly without revealing anything" do
+    get check_inbox_path
+    assert_response :success
+    assert_select "h1", "Check your inbox"
   end
 
   test "signed-in users are sent home from the signup page" do

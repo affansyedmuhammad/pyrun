@@ -1,1 +1,100 @@
 @import "tailwindcss";
+
+/*
+  The visual system. Views only use the component classes below plus layout
+  utilities, so a change of type, color, or spacing happens here.
+  Palette: one neutral scale (zinc), near-black for primary actions, color only
+  for meaning (status, errors, confirmations).
+*/
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+@layer base {
+  html {
+    @apply bg-zinc-50 text-zinc-900 antialiased;
+  }
+  body {
+    @apply min-h-screen font-sans text-[15px] leading-6;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium whitespace-nowrap transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-zinc-900 text-white hover:bg-zinc-700;
+  }
+  .btn-secondary {
+    @apply border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100;
+  }
+  .btn-quiet {
+    @apply h-9 px-3 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900;
+  }
+
+  /* Text links */
+  .link {
+    @apply font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900;
+  }
+
+  /* Form fields (rendered by PyrunFormBuilder) */
+  .field {
+    @apply space-y-1.5;
+  }
+  .field-label {
+    @apply block text-sm font-medium text-zinc-800;
+  }
+  .field-input {
+    @apply block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-[15px] text-zinc-900;
+    @apply placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900;
+  }
+  .field-input[aria-invalid="true"] {
+    @apply border-red-600 focus:border-red-600 focus:ring-red-600;
+  }
+  .field-hint {
+    @apply text-sm text-zinc-500;
+  }
+  .field-error {
+    @apply text-sm text-red-700;
+  }
+
+  /* Flash messages */
+  .flash {
+    @apply mb-6 rounded-md border px-3 py-2 text-sm;
+  }
+  .flash-notice {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-900;
+  }
+  .flash-alert {
+    @apply border-red-200 bg-red-50 text-red-900;
+  }
+
+  /* Page frames */
+  .auth {
+    @apply mx-auto w-full max-w-sm px-6 pt-[10vh] pb-16;
+  }
+  .auth-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .auth-lede {
+    @apply mt-1.5 text-sm text-zinc-500;
+  }
+  .auth-foot {
+    @apply mt-6 text-sm text-zinc-500;
+  }
+  .page {
+    @apply mx-auto w-full max-w-5xl px-6 py-10;
+  }
+  .page-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .empty {
+    @apply mt-10 rounded-md border border-dashed border-zinc-300 px-6 py-12 text-center text-sm text-zinc-500;
+  }
+}

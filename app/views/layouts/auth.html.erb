@@ -1,0 +1,8 @@
+<%# Narrow, centered frame for the account pages. Nested inside the application layout. %>
+<% content_for :frame do %>
+  <div class="auth">
+    <%= render "layouts/flash" %>
+    <%= yield %>
+  </div>
+<% end %>
+<%= render template: "layouts/application" %>

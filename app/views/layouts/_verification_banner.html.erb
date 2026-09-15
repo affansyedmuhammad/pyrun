@@ -1,0 +1,5 @@
+<% unless Pyrun.config.require_email_verification %>
+  <div class="border-b border-amber-200 bg-amber-50 px-6 py-2 text-center text-sm text-amber-900" role="alert">
+    Email verification is switched off. Addresses are not being proven. Set REQUIRE_EMAIL_VERIFICATION=true.
+  </div>
+<% end %>

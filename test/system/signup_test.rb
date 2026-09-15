@@ -37,7 +37,7 @@ class SignupTest < ApplicationSystemTestCase
     fill_in "Confirm password", with: "short"
     click_button "Create account"
 
-    assert_text "minimum is 12 characters"
+    assert_text "at least 12 characters"
     assert_nil User.find_by(email_address: "new.person@windbornesystems.com")
   end
 end

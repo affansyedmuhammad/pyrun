@@ -8,6 +8,7 @@ class PasswordResetTest < ApplicationSystemTestCase
 
     visit login_path
     click_link "Forgot your password?"
+    assert_selector "h1", text: "Reset your password"
     fill_in "Email", with: user.email_address
     click_button "Send reset link"
     assert_text "If that address has an account"
