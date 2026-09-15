@@ -22,6 +22,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # The browser drives a real server thread; mail is delivered through Active Job,
   # so jobs perform as soon as they are enqueued for the duration of a system test.
   setup do
+    ActionMailer::Base.deliveries.clear
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = true
     ActiveJob::Base.queue_adapter.perform_enqueued_at_jobs = true
   end

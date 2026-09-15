@@ -10,6 +10,8 @@
     <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
   </div>
 
+  <%= render "runs/progress", run: @run unless @run.finished? %>
+
   <dl class="meta">
     <div><dt>Run</dt><dd>#<%= @run.id %></dd></div>
     <% if @run.user_id != Current.user.id %><div class="col-span-2"><dt>Owner</dt><dd class="break-all"><%= @run.user.email_address %></dd></div><% end %>

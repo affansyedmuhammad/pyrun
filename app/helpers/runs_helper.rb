@@ -45,6 +45,12 @@ module RunsHelper
     end
   end
 
+  # Seconds as m:ss, for the live clock on queued and running runs.
+  def format_clock(seconds)
+    minutes, rest = seconds.to_i.divmod(60)
+    format("%d:%02d", minutes, rest)
+  end
+
   def relative_time(time)
     return "—" if time.nil?
     tag.time("#{time_ago_in_words(time)} ago", datetime: time.iso8601, title: time.to_fs(:long))

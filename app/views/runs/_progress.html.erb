@@ -1,0 +1,18 @@
+<%# Live clock for a run that has not finished. The server renders the elapsed
+    seconds; the controller counts on from there, so browser clock skew never
+    shows. Replaced by the Turbo refresh when the worker writes a result. %>
+<% running = run.running? %>
+<% since = running ? run.started_at : run.queued_at %>
+<% elapsed = [(Time.current - since).floor, 0].max %>
+<div class="mt-6" data-controller="elapsed"
+     data-elapsed-mode-value="<%= running ? "running" : "queued" %>"
+     data-elapsed-elapsed-value="<%= elapsed %>"
+     data-elapsed-limit-value="<%= run.timeout_seconds %>">
+  <div class="flex items-baseline justify-between text-sm text-zinc-500">
+    <span><%= running ? "Running for" : "Waiting for" %> <span class="font-medium tabular-nums text-zinc-900" data-elapsed-target="time"><%= format_clock(elapsed) %></span></span>
+    <span>limit <%= format_clock(run.timeout_seconds) %></span>
+  </div>
+  <div class="progress" role="progressbar" aria-label="<%= running ? "Time used" : "Waiting for a worker" %>" aria-valuemin="0" aria-valuemax="<%= run.timeout_seconds %>" <%= "aria-valuenow=#{elapsed}" if running %>>
+    <div class="progress-bar <%= "progress-bar-indeterminate" unless running %>" data-elapsed-target="bar"></div>
+  </div>
+</div>
