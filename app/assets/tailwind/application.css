@@ -37,6 +37,15 @@
   .btn-quiet {
     @apply h-9 px-3 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900;
   }
+  .btn-icon {
+    @apply h-8 w-8 rounded-md p-0 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900;
+  }
+  .btn-icon-danger {
+    @apply hover:bg-red-50 hover:text-red-700;
+  }
+  .icon {
+    @apply size-4;
+  }
 
   /* Text links */
   .link {

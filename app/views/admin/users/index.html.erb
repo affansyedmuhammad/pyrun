@@ -2,7 +2,6 @@
 <div class="page">
   <%= render "layouts/flash" %>
   <h1 class="page-title">Users</h1>
-  <p class="mt-1.5 text-sm text-zinc-500">Everyone with an account. Admins are set by <code class="font-mono text-[13px]">ADMIN_EMAILS</code> in the deployment, not here.</p>
 
   <%= form_with url: admin_users_path, method: :get, class: "mt-6 flex flex-wrap items-end gap-3" do |f| %>
     <div class="field w-80">

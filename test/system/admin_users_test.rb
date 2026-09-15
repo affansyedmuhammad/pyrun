@@ -21,6 +21,11 @@ class AdminUsersTest < ApplicationSystemTestCase
 
       within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
         assert_text "Active"
+        click_button "Sign out everywhere" # the fixture session; deactivating below would end it anyway
+      end
+      assert_text "Signed verified@windbornesystems.com out everywhere"
+
+      within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
         click_button "Deactivate"
       end
       assert_text "Deactivated verified@windbornesystems.com"
@@ -29,11 +34,6 @@ class AdminUsersTest < ApplicationSystemTestCase
         click_button "Reactivate"
       end
       assert_text "Reactivated verified@windbornesystems.com"
-
-      within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
-        click_button "Sign out everywhere"
-      end
-      assert_text "Signed verified@windbornesystems.com out everywhere"
 
       within(:xpath, "//tr[td[normalize-space(.)='verified@windbornesystems.com']]") do
         click_button "Reset password"

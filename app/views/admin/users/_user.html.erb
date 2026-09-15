@@ -17,15 +17,15 @@
   <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(user.last_signed_in_at) %></td>
   <td class="whitespace-nowrap text-right text-zinc-500"><time datetime="<%= user.created_at.iso8601 %>" title="<%= user.created_at.to_fs(:long) %>"><%= user.created_at.strftime("%-d %b %Y") %></time></td>
   <td class="whitespace-nowrap text-right">
-    <div class="inline-flex items-center justify-end gap-1">
+    <div class="inline-flex items-center justify-end gap-0.5">
       <% if user.disabled? %>
-        <%= button_to "Reactivate", reactivate_admin_user_path(user), class: "btn btn-quiet h-8 px-2", form_class: "contents" %>
+        <%= icon_button_to "Reactivate", reactivate_admin_user_path(user), icon: :user_check, title: "Reactivate: allows sign-in again" %>
       <% elsif user != Current.user %>
-        <%= button_to "Reset password", password_reset_admin_user_path(user), class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Emails them a link to choose a new password" %>
+        <%= icon_button_to "Reset password", password_reset_admin_user_path(user), icon: :key, title: "Reset password: emails them a link to choose a new one" %>
         <% if sessions.positive? %>
-          <%= button_to "Sign out", sessions_admin_user_path(user), method: :delete, class: "btn btn-quiet h-8 px-2", form_class: "contents", title: "Sign out everywhere: ends #{pluralize(sessions, 'session')}" %>
+          <%= icon_button_to "Sign out everywhere", sessions_admin_user_path(user), icon: :log_out, method: :delete, title: "Sign out everywhere: ends #{pluralize(sessions, 'session')}" %>
         <% end %>
-        <%= button_to "Deactivate", deactivate_admin_user_path(user), class: "btn btn-quiet h-8 px-2 text-red-700 hover:text-red-800", form_class: "contents", title: "Blocks sign-in and ends their sessions. Can be undone." %>
+        <%= icon_button_to "Deactivate", deactivate_admin_user_path(user), icon: :user_x, danger: true, title: "Deactivate: blocks sign-in and ends their sessions. Can be undone." %>
       <% end %>
     </div>
   </td>
