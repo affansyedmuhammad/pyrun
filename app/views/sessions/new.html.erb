@@ -3,9 +3,9 @@
 
 <%= form_with url: login_path, class: "mt-8 space-y-5" do |f| %>
   <%= f.field :email_address, as: :email, label: "Email", value: @email_address, autofocus: true, autocomplete: "email", required: true %>
-  <%= f.field :password, as: :password, label: "Password", autocomplete: "current-password", required: true %>
+  <%= f.field :password, as: :password, label: "Password", autocomplete: "current-password", required: true,
+              label_aside: link_to("Forgot your password?", new_password_path, class: "link text-xs font-normal") %>
   <%= f.submit "Sign in", class: "w-full" %>
 <% end %>
 
-<p class="auth-foot"><%= link_to "Forgot your password?", new_password_path, class: "link" %></p>
-<p class="auth-foot mt-2">New here? <%= link_to "Create an account", signup_path, class: "link" %></p>
+<p class="auth-foot">New here? <%= link_to "Create an account", signup_path, class: "link" %></p>

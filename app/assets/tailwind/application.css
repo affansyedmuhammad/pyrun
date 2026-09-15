@@ -59,6 +59,9 @@
   .field-label {
     @apply block text-sm font-medium text-zinc-800;
   }
+  .field-label-row {
+    @apply flex items-baseline justify-between gap-3;
+  }
   .field-input {
     @apply block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-[15px] text-zinc-900;
     @apply placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900;
