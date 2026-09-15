@@ -15,7 +15,7 @@
     <% end %>
   </td>
   <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(user.last_signed_in_at) %></td>
-  <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(user.created_at) %></td>
+  <td class="whitespace-nowrap text-right text-zinc-500"><time datetime="<%= user.created_at.iso8601 %>" title="<%= user.created_at.to_fs(:long) %>"><%= user.created_at.strftime("%-d %b %Y") %></time></td>
   <td class="whitespace-nowrap text-right">
     <div class="inline-flex items-center justify-end gap-1">
       <% if user.disabled? %>
