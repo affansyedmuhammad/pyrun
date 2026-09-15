@@ -11,6 +11,9 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
+    # Rate-limit counters live in the cache; start every test with a clean slate.
+    setup { Rails.cache.clear }
+
     # Swap the app config for the duration of a block. Config is immutable, so this is
     # the only way tests change limits, allowlists, or admin membership.
     def with_config(**changes)
