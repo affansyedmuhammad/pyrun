@@ -8,7 +8,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     get signup_path
     assert_response :success
     assert_select "h1", "Create your account"
-    assert_select "p", /windbornesystems\.com/
+    assert_select "p.auth-lede", count: 0
     assert_select "a[href=?]", login_path
   end
 

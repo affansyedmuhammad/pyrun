@@ -9,7 +9,12 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", "Sign in"
     assert_select "p.auth-lede", count: 0
     assert_select "a[href=?]", signup_path
-    assert_select "a[href=?]", new_password_path
+    # The reset link sits on the password label's row, right-aligned, not in the footer.
+    assert_select ".field .field-label-row" do
+      assert_select "label[for=password]", "Password"
+      assert_select "a[href=?]", new_password_path, text: "Forgot your password?"
+    end
+    assert_select "p.auth-foot a[href=?]", new_password_path, count: 0
   end
 
   test "signing in starts a password session and goes home" do
