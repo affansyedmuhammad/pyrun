@@ -1,0 +1,58 @@
+DEFAULTS: &DEFAULTS
+  runtime: python3.12
+  sandbox_image: pyrun-sandbox:test
+  timeout_seconds: 120
+  memory_mb: 256
+  cpus: 1.0
+  pids_limit: 64
+  max_output_bytes: 1000000
+
+verified_succeeded:
+  <<: *DEFAULTS
+  user: verified
+  status: succeeded
+  code: "print('hello')"
+  stdout: "hello\n"
+  stderr: ""
+  exit_code: 0
+  queued_at: <%= 2.hours.ago.iso8601 %>
+  started_at: <%= (2.hours.ago + 1.second).iso8601 %>
+  finished_at: <%= (2.hours.ago + 2.seconds).iso8601 %>
+  duration_ms: 812
+  created_at: <%= 2.hours.ago.iso8601 %>
+
+verified_failed:
+  <<: *DEFAULTS
+  user: verified
+  status: failed
+  code: "raise RuntimeError('boom')"
+  stdout: ""
+  stderr: "Traceback (most recent call last):\n  File \"<stdin>\", line 1, in <module>\nRuntimeError: boom\n"
+  exit_code: 1
+  queued_at: <%= 1.hour.ago.iso8601 %>
+  started_at: <%= (1.hour.ago + 1.second).iso8601 %>
+  finished_at: <%= (1.hour.ago + 2.seconds).iso8601 %>
+  duration_ms: 640
+  created_at: <%= 1.hour.ago.iso8601 %>
+
+verified_queued:
+  <<: *DEFAULTS
+  user: verified
+  status: queued
+  code: "import time\ntime.sleep(3)"
+  queued_at: <%= 5.minutes.ago.iso8601 %>
+  created_at: <%= 5.minutes.ago.iso8601 %>
+
+admin_succeeded:
+  <<: *DEFAULTS
+  user: admin
+  status: succeeded
+  code: "print(2 + 2)"
+  stdout: "4\n"
+  stderr: ""
+  exit_code: 0
+  queued_at: <%= 3.hours.ago.iso8601 %>
+  started_at: <%= (3.hours.ago + 1.second).iso8601 %>
+  finished_at: <%= (3.hours.ago + 2.seconds).iso8601 %>
+  duration_ms: 500
+  created_at: <%= 3.hours.ago.iso8601 %>

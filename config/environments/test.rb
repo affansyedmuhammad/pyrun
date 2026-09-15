@@ -26,6 +26,9 @@ Rails.application.configure do
   # Jobs are captured, and performed only when a test says so.
   config.active_job.queue_adapter = :test
 
+  # Fixtures for encrypted columns are written in the clear and encrypted on load.
+  config.active_record.encryption.encrypt_fixtures = true
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 

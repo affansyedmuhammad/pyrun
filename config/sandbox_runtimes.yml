@@ -1,0 +1,10 @@
+# The runtime registry. One entry today. Adding a language or a Python version is
+# one entry here plus one Dockerfile under sandbox/. The first entry is the default.
+#
+#   label:   shown in the form's runtime select (hidden while there is one entry)
+#   image:   optional; when absent the entry runs SANDBOX_IMAGE from config, which
+#            is how deploys pin the image tag without editing this file
+#   command: argv run inside the container; the code arrives on stdin
+python3.12:
+  label: Python 3.12
+  command: ["python3", "-I", "-u", "-"]

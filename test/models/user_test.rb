@@ -113,6 +113,16 @@ class UserTest < ActiveSupport::TestCase
     assert_not users(:admin).admin?
   end
 
+  test "visible_runs is a member's own runs and every run for an admin" do
+    assert_equal users(:verified).runs.to_a.sort, users(:verified).visible_runs.to_a.sort
+    assert_not_includes users(:verified).visible_runs, runs(:admin_succeeded)
+
+    with_config(admin_emails: [ "admin@windbornesystems.com" ]) do
+      assert_equal Run.count, users(:admin).visible_runs.count
+      assert_includes users(:admin).visible_runs, runs(:verified_failed)
+    end
+  end
+
   test "disabled?" do
     assert users(:disabled).disabled?
     assert_not users(:verified).disabled?

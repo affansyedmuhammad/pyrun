@@ -25,3 +25,6 @@ module ActiveSupport
     end
   end
 end
+
+# No test ever talks to Docker unless it opts in; the fake runner is scriptable.
+Pyrun.config = Pyrun.config.with(sandbox_runner: "fake")

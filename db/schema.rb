@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_202403) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_230000) do
   create_table "identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_at_link"
@@ -21,6 +21,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_202403) do
     t.integer "user_id", null: false
     t.index ["provider", "uid"], name: "index_identities_on_provider_and_uid", unique: true
     t.index ["user_id"], name: "index_identities_on_user_id"
+  end
+
+  create_table "runs", force: :cascade do |t|
+    t.text "code", null: false
+    t.decimal "cpus", precision: 4, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.integer "duration_ms"
+    t.string "error_message"
+    t.integer "exit_code"
+    t.datetime "finished_at"
+    t.integer "max_output_bytes", null: false
+    t.integer "memory_mb", null: false
+    t.boolean "oom_killed", default: false, null: false
+    t.integer "pids_limit", null: false
+    t.datetime "queued_at", null: false
+    t.json "runner_metadata"
+    t.string "runtime", null: false
+    t.string "sandbox_image"
+    t.datetime "started_at"
+    t.string "status", default: "queued", null: false
+    t.text "stderr"
+    t.boolean "stderr_truncated", default: false, null: false
+    t.text "stdout"
+    t.boolean "stdout_truncated", default: false, null: false
+    t.integer "timeout_seconds", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["status"], name: "index_runs_on_status"
+    t.index ["user_id", "created_at"], name: "index_runs_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_runs_on_user_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -45,5 +75,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_202403) do
   end
 
   add_foreign_key "identities", "users"
+  add_foreign_key "runs", "users"
   add_foreign_key "sessions", "users"
 end
