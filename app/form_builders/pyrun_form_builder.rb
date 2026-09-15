@@ -17,9 +17,14 @@ class PyrunFormBuilder < ActionView::Helpers::FormBuilder
     @template.tag.div(class: "field") do
       label_tag = label(attribute, label, class: "field-label", for: id)
       label_row = label_aside ? @template.tag.div(@template.safe_join([ label_tag, label_aside ]), class: "field-label-row") : label_tag
+      input = if as == :password
+        password_with_toggle(attribute, input_options)
+      else
+        public_send(as == :textarea ? :text_area : :"#{as}_field", attribute, **input_options)
+      end
       @template.safe_join([
         label_row,
-        public_send(as == :textarea ? :text_area : :"#{as}_field", attribute, **input_options),
+        input,
         (@template.tag.p(hint, class: "field-hint", id: field_id(attribute, :hint)) if hint),
         (@template.tag.p(messages.to_sentence.upcase_first, class: "field-error", id: field_id(attribute, :error)) if messages.any?)
       ].compact)
@@ -32,6 +37,17 @@ class PyrunFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   private
+    # A password input with an eye button that reveals it (password-visibility controller).
+    def password_with_toggle(attribute, options)
+      options = options.merge(class: "#{options[:class]} pr-10", data: (options[:data] || {}).merge(password_visibility_target: "input"))
+      toggle = @template.tag.button(
+        @template.safe_join([ @template.icon(:eye, css: "icon"), @template.icon(:eye_off, css: "icon", hidden: true) ]),
+        type: "button", class: "password-toggle", "aria-label": "Show password", title: "Show password", "aria-pressed": "false",
+        data: { action: "password-visibility#toggle", password_visibility_target: "button" }
+      )
+      @template.tag.div(@template.safe_join([ password_field(attribute, **options), toggle ]), class: "password-wrap", data: { controller: "password-visibility" })
+    end
+
     def error_messages(attribute)
       return [] unless object.respond_to?(:errors)
       object.errors.messages_for(attribute)

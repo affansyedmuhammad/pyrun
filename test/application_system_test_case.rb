@@ -14,6 +14,7 @@ Capybara.register_driver(:playwright) do |app|
 end
 
 Capybara.default_max_wait_time = 5
+Capybara.enable_aria_label = true # icon buttons are named by aria-label, as assistive tech sees them
 Capybara.save_path = Rails.root.join("tmp/screenshots")
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase

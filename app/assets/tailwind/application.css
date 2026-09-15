@@ -69,6 +69,14 @@
   .field-input[aria-invalid="true"] {
     @apply border-red-600 focus:border-red-600 focus:ring-red-600;
   }
+  .password-wrap {
+    @apply relative;
+  }
+  .password-toggle {
+    @apply absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-zinc-400 hover:text-zinc-900;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900;
+  }
+
   .field-hint {
     @apply text-sm text-zinc-500;
   }

@@ -27,7 +27,7 @@ class RegistrationsController < ApplicationController
       render :new, status: :unprocessable_content
     when :rejected
       Rails.logger.info "auth.signup_rejected email=#{registration_params[:email_address].inspect} ip=#{request.remote_ip}"
-      @user = User.new(email_address: registration_params[:email_address])
+      @user = User.new(registration_params)
       @user.errors.add(:email_address, result.error)
       render :new, status: :unprocessable_content
     end
