@@ -113,8 +113,9 @@ class RunsTest < ApplicationSystemTestCase
     click_link "Back to runs"
     assert_selector "h1", text: "Runs"
     assert_current_path runs_path
-    click_link "raise RuntimeError('boom')"
-    assert_selector "h1", text: "Failed"
+    assert_selector "tbody tr", count: 3
+
+    visit run_path(runs(:verified_failed))
 
     click_link "Run again"
     assert_selector "h1", text: "New run"
