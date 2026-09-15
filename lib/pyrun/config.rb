@@ -30,6 +30,7 @@ module Pyrun
       sandbox_max_output_bytes:   [ "SANDBOX_MAX_OUTPUT_BYTES",   :positive_int, 1_000_000 ],
       sandbox_concurrency:        [ "SANDBOX_CONCURRENCY",        :positive_int, 2 ],
       host_memory_mb:             [ "HOST_MEMORY_MB",             :positive_int, nil ],
+      host_cpus:                  [ "HOST_CPUS",                  :positive_decimal, nil ],
       max_code_bytes:             [ "MAX_CODE_BYTES",             :positive_int, 65_536 ],
       max_active_runs_per_user:   [ "MAX_ACTIVE_RUNS_PER_USER",   :positive_int, 5 ],
       max_queue_depth:            [ "MAX_QUEUE_DEPTH",            :positive_int, 200 ],
@@ -72,6 +73,15 @@ module Pyrun
 
     def run_rate_limit_count = run_rate_limit[0]
     def run_rate_limit_period = run_rate_limit[1].seconds
+
+    # Settings that must be present or safe in production; the boot initializer
+    # refuses to start if any hold. See docs/SECURITY-REVIEW.md findings 5 and 10.
+    def production_safety_errors
+      errors = []
+      errors << "HOST_MEMORY_MB and HOST_CPUS must be set so sandbox capacity is validated against the host" unless host_memory_mb && host_cpus
+      errors << "REQUIRE_EMAIL_VERIFICATION must not be false in production" unless require_email_verification
+      errors
+    end
     def request_rate_limit_count = request_rate_limit[0]
     def request_rate_limit_period = request_rate_limit[1].seconds
 
@@ -84,6 +94,9 @@ module Pyrun
     def validate!
       if host_memory_mb && sandbox_concurrency * sandbox_memory_mb > host_memory_mb
         raise Error, "SANDBOX_CONCURRENCY × SANDBOX_MEMORY_MB (#{sandbox_concurrency * sandbox_memory_mb} MB) exceeds HOST_MEMORY_MB (#{host_memory_mb} MB)"
+      end
+      if host_cpus && sandbox_concurrency * sandbox_cpus > host_cpus
+        raise Error, "SANDBOX_CONCURRENCY × SANDBOX_CPUS (#{sandbox_concurrency * sandbox_cpus}) exceeds HOST_CPUS (#{host_cpus})"
       end
     end
 

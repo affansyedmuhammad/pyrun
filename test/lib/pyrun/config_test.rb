@@ -19,6 +19,7 @@ module Pyrun
       assert_equal 64, c.sandbox_pids_limit
       assert_equal 1_000_000, c.sandbox_max_output_bytes
       assert_equal 2, c.sandbox_concurrency
+      assert_nil c.host_cpus
       assert_equal 65_536, c.max_code_bytes
       assert_equal 5, c.max_active_runs_per_user
       assert_equal 200, c.max_queue_depth
@@ -97,6 +98,22 @@ module Pyrun
       assert_nothing_raised { Config.from_env("SANDBOX_CONCURRENCY" => "4", "SANDBOX_MEMORY_MB" => "256", "HOST_MEMORY_MB" => "2048") }
       error = assert_raises(Config::Error) { Config.from_env("SANDBOX_CONCURRENCY" => "8", "SANDBOX_MEMORY_MB" => "256", "HOST_MEMORY_MB" => "1024") }
       assert_match(/HOST_MEMORY_MB/, error.message)
+    end
+
+    test "sandbox concurrency times cpus must fit under the configured host cpus" do
+      assert_nothing_raised { Config.from_env("SANDBOX_CONCURRENCY" => "2", "SANDBOX_CPUS" => "1", "HOST_CPUS" => "4") }
+      error = assert_raises(Config::Error) { Config.from_env("SANDBOX_CONCURRENCY" => "4", "SANDBOX_CPUS" => "1", "HOST_CPUS" => "2") }
+      assert_match(/HOST_CPUS/, error.message)
+      assert_nil Config.from_env({}).host_cpus
+    end
+
+    test "production_safety_errors demands host limits and email verification" do
+      messages = Config.from_env({}).production_safety_errors
+      assert messages.any? { |m| m =~ /HOST_MEMORY_MB.*HOST_CPUS|HOST_CPUS.*HOST_MEMORY_MB/ }
+      assert_empty Config.from_env("HOST_MEMORY_MB" => "2048", "HOST_CPUS" => "2").production_safety_errors
+
+      off = Config.from_env("HOST_MEMORY_MB" => "2048", "HOST_CPUS" => "2", "REQUIRE_EMAIL_VERIFICATION" => "false")
+      assert off.production_safety_errors.any? { |m| m =~ /REQUIRE_EMAIL_VERIFICATION/ }
     end
 
     test "mail_from defaults to the app host without its port" do

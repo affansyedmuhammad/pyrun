@@ -13,6 +13,15 @@ module Authentication
 
   SESSION_COOKIE = session_cookie_name(secure: Rails.env.production?)
 
+  # Only a relative path on this app is ever used as a return target. A single
+  # leading slash and a second character that is neither slash nor backslash
+  # reject both "//evil.com" and "/\evil.com" (browsers read the backslash as a
+  # slash). See docs/SECURITY-REVIEW.md finding 9.
+  def self.safe_return_path(target)
+    target = target.to_s
+    target if target.match?(%r{\A/[^/\\]})
+  end
+
   included do
     before_action :require_authentication
     before_action :require_verified_email
@@ -76,10 +85,7 @@ module Authentication
     end
 
     # Only a relative path on this app is ever used as a return target.
-    def safe_return_path(target)
-      target = target.to_s
-      target if target.start_with?("/") && !target.start_with?("//")
-    end
+    def safe_return_path(target) = Authentication.safe_return_path(target)
 
     def start_new_session_for(user, method: "password")
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, login_method: method).tap do |session|
