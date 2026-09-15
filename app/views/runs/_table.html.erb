@@ -9,7 +9,6 @@
         <th>Code</th>
         <th class="text-right">Duration</th>
         <th class="text-right">Submitted</th>
-        <th><span class="sr-only">Open</span></th>
       </tr>
     </thead>
     <tbody>
@@ -20,11 +19,10 @@
           <td class="w-full min-w-48 max-w-0"><%= link_to run.first_line, run_path(run, from: from), class: "block truncate font-mono text-[13px] text-zinc-900" %></td>
           <td class="whitespace-nowrap text-right tabular-nums text-zinc-500"><%= format_duration(run.duration_ms) %></td>
           <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(run.created_at) %></td>
-          <td class="whitespace-nowrap text-right"><%= link_to "Open", run_path(run, from: from), class: "link" %></td>
         </tr>
       <% end %>
       <% if runs.empty? %>
-        <tr><td colspan="6" class="py-10 text-center text-zinc-500">Nothing matches this filter.</td></tr>
+        <tr><td colspan="5" class="py-10 text-center text-zinc-500">Nothing matches this filter.</td></tr>
       <% end %>
     </tbody>
   </table>

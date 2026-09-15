@@ -10,6 +10,14 @@ module IconsHelper
     shield_off: '<path d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18"/><path d="M4.73 4.73L4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38"/><line x1="1" y1="1" x2="23" y2="23"/>'
   }.freeze
 
+  # The mark: a prompt chevron and a cursor on a dark rounded square. The same
+  # drawing is public/icon.svg (the favicon), so the two never drift.
+  LOGO = %(<rect width="32" height="32" rx="7" fill="#18181b"/><path d="M10 10l6 6-6 6" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 22h6" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>).freeze
+
+  def logo_mark(css: "logo")
+    tag.svg(LOGO.html_safe, class: css, viewBox: "0 0 32 32", "aria-hidden": "true")
+  end
+
   def icon(name, css: "icon")
     tag.svg(ICONS.fetch(name).html_safe, class: css, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor",
             "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true")

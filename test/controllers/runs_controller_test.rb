@@ -212,7 +212,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     get runs_path
     assert_select "tbody tr a[href=?]", run_path(runs(:verified_failed)), text: /raise RuntimeError/
     assert_select "tbody tr a", text: "Open", count: 0
-    assert_select "thead th", count: 5
+    assert_select "thead th", count: 4 # Status, Code, Duration, Submitted; Owner only on the admin list
   end
 
   test "a run opened from the all-runs list goes back to All runs and its pager walks that list" do

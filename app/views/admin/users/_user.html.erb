@@ -7,15 +7,15 @@
     </div>
   </td>
   <td class="whitespace-nowrap"><span class="status"><%= account_status_dot(user) %><%= user.account_status.capitalize %></span></td>
-  <td class="text-right tabular-nums">
+  <td class="tabular-nums">
     <% if runs.positive? %>
       <%= link_to runs, admin_runs_path(email: user.email_address), class: "link" %>
     <% else %>
       <span class="text-zinc-400">0</span>
     <% end %>
   </td>
-  <td class="whitespace-nowrap text-right text-zinc-500"><%= relative_time(user.last_signed_in_at) %></td>
-  <td class="whitespace-nowrap text-right text-zinc-500"><time datetime="<%= user.created_at.iso8601 %>" title="<%= user.created_at.to_fs(:long) %>"><%= user.created_at.strftime("%-d %b %Y") %></time></td>
+  <td class="whitespace-nowrap text-zinc-500"><%= relative_time(user.last_signed_in_at) %></td>
+  <td class="whitespace-nowrap text-zinc-500"><time datetime="<%= user.created_at.iso8601 %>" title="<%= user.created_at.to_fs(:long) %>"><%= user.created_at.strftime("%-d %b %Y") %></time></td>
   <td class="whitespace-nowrap text-right">
     <div class="inline-flex items-center justify-end gap-0.5">
       <% if user.disabled? %>

@@ -1,6 +1,6 @@
 <%# Signed-in navigation: a left column on wide screens, a compact strip on phones. %>
 <aside class="sidebar">
-  <%= link_to Pyrun.config.app_name, root_path, class: "wordmark" %>
+  <%= link_to root_path, class: "wordmark" do %><%= logo_mark %><span><%= Pyrun.config.app_name %></span><% end %>
 
   <nav class="sidebar-nav" aria-label="Main">
     <% if Current.user.verified? %>

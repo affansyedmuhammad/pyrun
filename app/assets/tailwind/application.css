@@ -169,7 +169,10 @@
     @apply md:sticky md:top-0 md:h-screen md:w-56 md:shrink-0 md:flex-col md:flex-nowrap md:items-stretch md:gap-0 md:border-b-0 md:border-r md:px-3 md:py-4;
   }
   .wordmark {
-    @apply font-mono text-sm font-semibold tracking-tight text-zinc-900 md:px-2.5 md:py-1.5;
+    @apply inline-flex items-center gap-2 font-mono text-sm font-semibold tracking-tight text-zinc-900 md:px-2.5 md:py-1.5;
+  }
+  .logo {
+    @apply size-6 shrink-0;
   }
   .sidebar-nav {
     @apply flex flex-wrap items-center gap-1 md:mt-6 md:flex-col md:items-stretch md:gap-0.5;
@@ -244,6 +247,10 @@
   }
   .table tbody tr:hover {
     @apply bg-white;
+  }
+  .table-roomy th,
+  .table-roomy td {
+    @apply pr-10 last:pr-0;
   }
 
   /* Run details */
