@@ -35,7 +35,11 @@ port ENV.fetch("PORT", 3000)
 plugin :tmp_restart
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments.
-plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+# Decided by the parsed boolean, not by whether the variable is set: Ruby treats
+# any present string, "false" included, as truthy, and a supervisor inside the
+# web role (which has no Docker access) claims sandbox jobs and fails them.
+require_relative "../lib/pyrun/config"
+plugin :solid_queue if Pyrun::Config.from_env(ENV).solid_queue_in_puma
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.

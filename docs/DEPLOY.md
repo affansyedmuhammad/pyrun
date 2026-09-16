@@ -130,6 +130,14 @@ Useful: `kamal logs -f`, `kamal logs -f -r job`, `kamal app exec 'bin/rails pyru
 - **Build speed.** EC2 is x86_64; building amd64 on an Apple-silicon laptop uses
   emulation and is slow. Options: a Kamal remote builder, or build in GitHub
   Actions and have Kamal pull.
+- **Never set `SOLID_QUEUE_IN_PUMA` for the web role.** The web container has no
+  Docker socket. If Puma runs a Solid Queue supervisor, its worker competes with
+  the job role for `sandbox` jobs and every run it claims errors instantly with
+  "Cannot connect to the Docker daemon" (about a third of runs, since both poll
+  the same queue). This happened once because the variable was set to `false`,
+  which `if ENV[...]` treats as true; `config/puma.rb` now reads the parsed
+  boolean and production refuses to boot with it enabled alongside the docker
+  runner. Check with `docker top <web container>`: only `puma` should be listed.
 - **Socket access.** If the `job` worker logs "permission denied ... docker.sock",
   the container is not in the host's docker group; set `group-add` (above).
 - **Gmail auth.** If mail fails to send, the app password must be from an account

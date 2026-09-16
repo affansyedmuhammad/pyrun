@@ -24,6 +24,7 @@ module Pyrun
       assert_equal 5, c.max_active_runs_per_user
       assert_equal 200, c.max_queue_depth
       assert_equal false, c.runs_paused
+      assert_equal false, c.solid_queue_in_puma
       assert_equal 0, c.retention_days
       assert_equal 20, c.run_rate_limit_count
       assert_equal 1.minute, c.run_rate_limit_period
@@ -116,6 +117,19 @@ module Pyrun
 
       off = Config.from_env("HOST_MEMORY_MB" => "2048", "HOST_CPUS" => "2", "REQUIRE_EMAIL_VERIFICATION" => "false")
       assert off.production_safety_errors.any? { |m| m =~ /REQUIRE_EMAIL_VERIFICATION/ }
+    end
+
+    test "SOLID_QUEUE_IN_PUMA is off unless it literally says true" do
+      assert_equal false, Config.from_env({}).solid_queue_in_puma
+      assert_equal false, Config.from_env("SOLID_QUEUE_IN_PUMA" => "false").solid_queue_in_puma
+      assert_equal true, Config.from_env("SOLID_QUEUE_IN_PUMA" => "true").solid_queue_in_puma
+    end
+
+    test "production_safety_errors refuses Solid Queue inside Puma when sandboxes run in Docker" do
+      host = { "HOST_MEMORY_MB" => "2048", "HOST_CPUS" => "2" }
+      assert_empty Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "false")).production_safety_errors
+      assert Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "true")).production_safety_errors.any? { |m| m =~ /SOLID_QUEUE_IN_PUMA/ }
+      assert_empty Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "true", "SANDBOX_RUNNER" => "fake")).production_safety_errors
     end
 
     test "mail_from defaults to the app host without its port" do

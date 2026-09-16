@@ -51,8 +51,10 @@ env:
     - SMTP_PASSWORD
   clear:
     # Jobs run in the dedicated job role, NOT inside Puma, so the web process
-    # never needs Docker access.
-    SOLID_QUEUE_IN_PUMA: false
+    # never needs Docker access. Never set SOLID_QUEUE_IN_PUMA here: the web
+    # container has no Docker socket, and a Solid Queue supervisor inside Puma
+    # would claim sandbox jobs and fail them instantly with "Cannot connect to
+    # the Docker daemon" (this happened; see docs/DEPLOY.md).
     SANDBOX_RUNNER: docker
 
     # Boot guard (security review 5 & 10): the app refuses to start in production

@@ -35,6 +35,7 @@ module Pyrun
       max_active_runs_per_user:   [ "MAX_ACTIVE_RUNS_PER_USER",   :positive_int, 5 ],
       max_queue_depth:            [ "MAX_QUEUE_DEPTH",            :positive_int, 200 ],
       runs_paused:                [ "RUNS_PAUSED",                :boolean,     false ],
+      solid_queue_in_puma:        [ "SOLID_QUEUE_IN_PUMA",        :boolean,     false ],
       retention_days:             [ "RETENTION_DAYS",             :non_negative_int, 0 ],
       run_rate_limit:             [ "RUN_RATE_LIMIT",             :rate_limit,  [ 20, 60 ] ],
       request_rate_limit:         [ "REQUEST_RATE_LIMIT",         :rate_limit,  [ 300, 60 ] ],
@@ -83,6 +84,7 @@ module Pyrun
       errors = []
       errors << "HOST_MEMORY_MB and HOST_CPUS must be set so sandbox capacity is validated against the host" unless host_memory_mb && host_cpus
       errors << "REQUIRE_EMAIL_VERIFICATION must not be false in production" unless require_email_verification
+      errors << "SOLID_QUEUE_IN_PUMA must not be enabled with the docker runner: the web process has no Docker access, so sandbox jobs belong in a separate job role (bin/jobs)" if solid_queue_in_puma && sandbox_runner == "docker"
       errors
     end
     def request_rate_limit_count = request_rate_limit[0]
