@@ -5,21 +5,21 @@
 #   job  - runs bin/jobs, the only process that can reach the Docker socket and
 #          launch sandbox containers on the host daemon.
 #
-# Everything marked TODO is yours to fill at deploy time. Nothing here is secret;
-# secrets live in .kamal/secrets and are pulled from the environment.
+# Host, domain, registry and addresses come from .kamal/deploy.env (untracked, loaded
+# by bin/deploy); secrets from .kamal/secrets. Nothing environment-specific is committed.
 
 service: pyrun
 
 # The image name in your registry. For GHCR this is "<github-user>/pyrun".
-image: affansyedmuhammad/pyrun
+image: <%= ENV.fetch("PYRUN_IMAGE") %>
 
 # One EC2 host runs both roles. Split onto separate hosts later for capacity.
 servers:
   web:
-    - 3.228.115.90
+    - <%= ENV.fetch("PYRUN_SERVER") %>
   job:
     hosts:
-      - 3.228.115.90
+      - <%= ENV.fetch("PYRUN_SERVER") %>
     cmd: bin/jobs
     options:
       # The worker launches sandboxes on the host daemon via the mounted socket.
@@ -27,20 +27,20 @@ servers:
       # The container must be allowed to read that socket. On the host run
       #   getent group docker | cut -d: -f3
       # and put the number here so the worker joins the docker group:
-      "group-add": "993"
+      "group-add": "<%= ENV.fetch("PYRUN_DOCKER_GID") %>"
 
 # TLS is terminated by Kamal's proxy with an automatic Let's Encrypt certificate.
-# Needs a real domain whose DNS A record points at the server (done: pyrun.duckdns.org -> 3.228.115.90).
+# Needs a real domain whose DNS A record points at the server.
 proxy:
   ssl: true
-  host: pyrun.duckdns.org
+  host: <%= ENV.fetch("PYRUN_DOMAIN") %>
   app_port: 80                # Thruster listens on 80 inside the web container
 
 # Where the built image is pushed and pulled. GHCR is easiest since the code is
-# already on GitHub; ECR and Docker Hub are alternatives (see DEPLOY.md).
+# already on GitHub; ECR and Docker Hub are alternatives (see docs/DEPLOYMENT.md).
 registry:
   server: ghcr.io
-  username: affansyedmuhammad
+  username: <%= ENV.fetch("PYRUN_REGISTRY_USER") %>
   password:
     - KAMAL_REGISTRY_PASSWORD  # a GitHub token with write:packages (see .kamal/secrets)
 
@@ -54,7 +54,7 @@ env:
     # never needs Docker access. Never set SOLID_QUEUE_IN_PUMA here: the web
     # container has no Docker socket, and a Solid Queue supervisor inside Puma
     # would claim sandbox jobs and fail them instantly with "Cannot connect to
-    # the Docker daemon" (this happened; see docs/DEPLOY.md).
+    # the Docker daemon" (see docs/DEPLOYMENT.md).
     SANDBOX_RUNNER: docker
 
     # Boot guard (security review 5 & 10): the app refuses to start in production
@@ -71,17 +71,17 @@ env:
     HOST_CPUS: "2"             # t3.small has 2 vCPU
 
     # Identity and links.
-    APP_HOST: pyrun.duckdns.org
+    APP_HOST: <%= ENV.fetch("PYRUN_DOMAIN") %>
     ALLOWED_EMAIL_DOMAINS: windbornesystems.com
-    ALLOWED_EMAILS: affansyedmuhammad@gmail.com
-    ADMIN_EMAILS: affansyedmuhammad@gmail.com
+    ALLOWED_EMAILS: <%= ENV.fetch("PYRUN_ALLOWED_EMAILS", "") %>
+    ADMIN_EMAILS: <%= ENV.fetch("PYRUN_ADMIN_EMAILS") %>
 
-    # Mail via a Gmail app password (needs 2-Step Verification on the account).
+    # Mail over SMTP (a provider app password is enough for a demo).
     # The password itself is a secret in .kamal/secrets (SMTP_PASSWORD).
-    SMTP_ADDRESS: smtp.gmail.com
+    SMTP_ADDRESS: <%= ENV.fetch("PYRUN_SMTP_ADDRESS") %>
     SMTP_PORT: "587"
-    SMTP_USERNAME: affansyedmuhammad@gmail.com
-    MAIL_FROM: affansyedmuhammad@gmail.com
+    SMTP_USERNAME: <%= ENV.fetch("PYRUN_SMTP_USERNAME") %>
+    MAIL_FROM: <%= ENV.fetch("PYRUN_MAIL_FROM") %>
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
@@ -98,7 +98,7 @@ volumes:
 asset_path: /rails/public/assets
 
 # EC2 is x86_64. On an Apple-silicon laptop this builds amd64 via emulation
-# (slower); a remote builder or GitHub Actions build is faster (see DEPLOY.md).
+# (slower); a remote builder or GitHub Actions build is faster (see docs/DEPLOYMENT.md).
 builder:
   arch: amd64
 

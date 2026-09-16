@@ -3,10 +3,11 @@
 A small Rails app that lets WindBorne people submit Python code, runs it in an isolated
 sandbox for up to two minutes, stores what it printed, and lets them browse past runs.
 
-**Status (2026-09-15):** milestones 0 to 4 of section 13 are implemented, test-first, in
-this repository. Deployment (5, 6), polish (7), and Google sign-in (8) are not yet started.
+This document is the thinking that happened before the code. The system as built is
+described in [IMPLEMENTATION.md](IMPLEMENTATION.md); where the two differ, that
+document describes what exists.
 
-This document is the thinking that happened before the code. It records the decisions,
+It It records the decisions,
 the alternatives I rejected and why, the threat model, and what I would change as the
 system grows. The implementation deliberately stays small; the depth lives here.
 
@@ -991,45 +992,9 @@ docs/DESIGN.md
 
 ---
 
-## 14. Anticipated interview questions
+## 14. Questions and answers
 
-- *Why not Devise?* Five screens do not need a framework, the follow-up asked for a
-  custom flow, and every line here is one I can explain. Devise is the right call in an
-  app with a dozen auth features; here it would be more configuration than code.
-- *Why verify email if you already check the domain?* Because the domain check only
-  proves the person can type. Verification proves they can read that inbox. Without it,
-  anyone can sign up as any coworker.
-- *Why an `identities` table now when there is no Google yet?* Because adding it later
-  means touching the user model, the validations, and the tests at the same time as
-  writing the OAuth callback. Adding it now costs one migration and one validation and
-  keeps the Google change to one controller and one button.
-- *What happens if someone signs up with my address before I do?* You get an email you
-  did not ask for. Clicking the link does nothing unless you can log in as that account,
-  which you cannot. Resetting the password proves the address is yours, kills the
-  intruder's sessions, and verifies you. If you sign in with Google instead, the same
-  thing happens automatically.
-- *Why is the superuser list an env var and not a role column?* Same reason the
-  allowlist is: it is deployment config, the set is tiny, it is revocable without a
-  migration or a UI, and it is evaluated on every request. When admins need to be
-  managed in-app it becomes a column, and `admin?` is the only call site that changes.
-- *Why not just `Open3.capture3("python3", ...)` with a timeout?* No isolation. The code
-  runs as the app user with the app's environment, network, and filesystem. It can read
-  `config/master.key`.
-- *Why not RestrictedPython or stripping builtins?* Python-level sandboxes are not a
-  security boundary; every one has been escaped. Isolation has to come from the OS.
-- *Why Docker over a plain `chroot` + `ulimit`?* Namespaces (network, pid, mount),
-  cgroups, seccomp, and capability dropping come for free and are well tested. Doing
-  that by hand is more code and more mistakes.
-- *Why not gVisor or Firecracker from the start?* Not available on the machine the
-  reviewer will run this on. The flag and the interface make it a deploy-time choice.
-- *What happens if the worker dies mid-run?* The container keeps running until its own
-  120 s `timeout` kills it; the reaper removes the container; the sweeper marks the run
-  `errored`. The job is never re-executed.
-- *What happens if Docker is down?* Runs go `errored` within a second with a clear
-  message. The web app is unaffected because it never talks to Docker.
-- *How do you know it is secure?* The integration tests in section 11 exercise each
-  control with real hostile programs, and section 6 lists what is not claimed.
-- *How would you let people install packages / read files / stream output?* Section 12.
+Moved to [QUESTIONS.md](QUESTIONS.md).
 
 ---
 

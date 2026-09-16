@@ -41,7 +41,7 @@ module Pyrun
     config.middleware.insert 0, Pyrun::RequestSizeLimit
 
     # Don't advertise per-request timing (the X-Runtime header): it's a small
-    # information leak and helps timing analysis. See docs/SECURITY-REVIEW.md.
+    # information leak and helps timing analysis. See the security section of docs/IMPLEMENTATION.md.
     config.middleware.delete Rack::Runtime
 
     # The app never generates Active Storage image variants, so disable the

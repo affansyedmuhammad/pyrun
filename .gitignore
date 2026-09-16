@@ -51,3 +51,7 @@
 # Deploy secrets (local only)
 .kamal/registry_token
 .kamal/smtp_password
+
+# Private notes and environment-specific deploy values
+/notes/
+.kamal/deploy.env

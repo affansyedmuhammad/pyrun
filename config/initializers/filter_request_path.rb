@@ -2,7 +2,7 @@
 # path segments (ActionDispatch::Http::FilterParameters#filtered_path). Our
 # reset and verification tokens ride in the path, so they would otherwise land
 # in the request log in clear text. Redact those segments before the path
-# reaches any log line. See docs/SECURITY-REVIEW.md, finding 1.
+# reaches any log line. See the security section of docs/IMPLEMENTATION.md.
 module Pyrun
   module FilteredRequestPath
     # /passwords/<token>[/edit] and /verify-email/<token>. "new" is a real

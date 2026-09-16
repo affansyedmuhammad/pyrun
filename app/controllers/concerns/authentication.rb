@@ -19,7 +19,7 @@ module Authentication
   # Only a relative path on this app is ever used as a return target. A single
   # leading slash and a second character that is neither slash nor backslash
   # reject both "//evil.com" and "/\evil.com" (browsers read the backslash as a
-  # slash). See docs/SECURITY-REVIEW.md finding 9.
+  # slash). See the security section of docs/IMPLEMENTATION.md.
   def self.safe_return_path(target)
     target = target.to_s
     target if target.match?(%r{\A/[^/\\]})

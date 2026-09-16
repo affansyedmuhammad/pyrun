@@ -80,7 +80,7 @@ module Pyrun
     def signup_rate_limit_period = signup_rate_limit[1].seconds
 
     # Settings that must be present or safe in production; the boot initializer
-    # refuses to start if any hold. See docs/SECURITY-REVIEW.md findings 5 and 10.
+    # refuses to start if any hold. See the security section of docs/IMPLEMENTATION.md.
     def production_safety_errors
       errors = []
       errors << "HOST_MEMORY_MB and HOST_CPUS must be set so sandbox capacity is validated against the host" unless host_memory_mb && host_cpus

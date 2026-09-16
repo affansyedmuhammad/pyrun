@@ -2,7 +2,7 @@
 # request. Pyrun.config itself is defined in config/application.rb; see docs/DESIGN.md §9.
 Pyrun.config
 
-# Refuse to boot production with an unsafe configuration (findings 5 and 10):
+# Refuse to boot production with an unsafe configuration (see the security section of docs/IMPLEMENTATION.md):
 # sandbox capacity must be validated against a declared host size, and the email
 # verification gate must be on. Skipped during image-build asset precompilation,
 # which loads the production environment with a dummy secret and no runtime host

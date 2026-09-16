@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Runs Kamal with the environment-specific values from .kamal/deploy.env, which is
+# not committed (see docs/DEPLOYMENT.md). Usage: bin/deploy deploy | setup | config | ...
+set -e
+cd "$(dirname "$0")/.."
+if [ ! -f .kamal/deploy.env ]; then
+  echo "bin/deploy: .kamal/deploy.env is missing; see docs/DEPLOYMENT.md for its contents" >&2
+  exit 1
+fi
+set -a; . ./.kamal/deploy.env; set +a
+exec bundle exec kamal "$@"

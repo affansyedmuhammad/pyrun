@@ -26,7 +26,7 @@ module Users
 
       # Only genuine new-account attempts (allowed domain, not already registered)
       # consume the global budget, so a flood of rejected or existing addresses
-      # can never lock out real sign-ups. See docs/SECURITY-REVIEW.md finding 2.
+      # can never lock out real sign-ups. See the security section of docs/IMPLEMENTATION.md.
       return limited unless within_global_signup_budget?
 
       create
