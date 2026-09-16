@@ -48,16 +48,22 @@ class RunsTest < ApplicationSystemTestCase
 
   test "output appears on the run page while it is still running and the box follows the newest line" do
     run = runs(:verified_queued)
-    run.update!(status: "running", started_at: Time.current)
+    run.update!(status: "running", started_at: 30.seconds.ago)
     sign_in users(:verified)
     visit run_path(run)
     assert_selector "h1", text: "Running"
     assert_no_selector "pre#output"
+    assert_selector "[data-elapsed-target=time]", text: /0:3\d/
+    assert_eventually_js "parseFloat(document.querySelector('[data-elapsed-target=bar]').style.width) > 20", "the bar should show ~25% before output arrives"
     page.execute_script("window.__stayed = true")
 
     Runs::Progress.call(run, stdout: "line 1\n", stderr: "")
     assert_selector "pre#output", text: "line 1"
     assert_selector "h1", text: "Running"
+    # Output arriving must not touch the clock or the bar (a full-page morph reset both).
+    width = page.evaluate_script("parseFloat(document.querySelector('[data-elapsed-target=bar]').style.width) || 0")
+    assert_operator width, :>, 20, "the bar reset to #{width}% when output arrived"
+    assert_selector "[data-elapsed-target=time]", text: /0:3\d/
 
     Runs::Progress.call(run, stdout: (1..200).map { |i| "line #{i}" }.join("\n") + "\n", stderr: "")
     assert_selector "pre#output", text: "line 200"

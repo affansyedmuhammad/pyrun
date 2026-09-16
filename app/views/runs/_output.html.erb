@@ -1,0 +1,30 @@
+<%# The output and errors sections. While a run is going, Runs::Progress morphs
+    just this element over the run's stream, so the clock and bar above it are
+    never touched; the refresh that brings the final result re-renders the page. %>
+<div id="run-output">
+  <section class="mt-8">
+    <h2 class="section-title">Output</h2>
+    <% if run.outputs_expired_at? %>
+      <p class="output-empty">Output expired and was deleted <%= relative_time(run.outputs_expired_at) %>.</p>
+    <% elsif run.stdout.present? %>
+      <%# While the run is going the box follows the newest line; the refresh that
+          brings the final result drops the controller, so a finished run reads from the top. %>
+      <%= tag.pre run.stdout, id: "output", class: "output", data: { controller: ("follow-output" unless run.finished?) } %>
+      <% if run.stdout_truncated? %><p class="note">Cut off at the <%= human_bytes(run.max_output_bytes) %> limit.</p><% end %>
+      <% unless run.finished? %><p class="note">Updates as the program prints.</p><% end %>
+    <% elsif run.finished? %>
+      <p class="output-empty">No output.</p>
+    <% else %>
+      <p class="output-empty">Output will appear here as the program runs.</p>
+    <% end %>
+  </section>
+
+  <% if run.stderr.present? %>
+    <section class="mt-8">
+      <h2 class="section-title">Errors</h2>
+      <%= tag.pre run.stderr, id: "errors", class: "output output-stderr", data: { controller: ("follow-output" unless run.finished?) } %>
+      <% if run.stderr_truncated? %><p class="note">Cut off at the <%= human_bytes(run.max_output_bytes) %> limit.</p><% end %>
+    </section>
+  <% end %>
+
+</div>

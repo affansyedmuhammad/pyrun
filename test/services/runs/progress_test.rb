@@ -17,6 +17,23 @@ module Runs
       assert_nil @run.exit_code
     end
 
+    test "morphs only the output section on the run's page, never a full refresh" do
+      replaced, refreshed = [], []
+      @run.define_singleton_method(:broadcast_replace_later_to) { |*streamables, **opts| replaced << [ streamables, opts ] }
+      @run.define_singleton_method(:broadcast_refresh_later_to) { |*streamables, **| refreshed << streamables }
+      @run.define_singleton_method(:broadcast_refresh_later) { refreshed << [ @run ] }
+
+      Progress.call(@run, stdout: "so far\n", stderr: "")
+
+      assert_empty refreshed, "a refresh would morph the whole page and reset the clock and bar"
+      assert_equal 1, replaced.size
+      streamables, opts = replaced.first
+      assert_equal [ @run ], streamables
+      assert_equal "run-output", opts[:target]
+      assert_equal({ method: :morph }, opts[:attributes])
+      assert_equal "runs/output", opts[:partial]
+    end
+
     test "does nothing once the run is no longer running" do
       @run.update!(status: "succeeded", finished_at: Time.current, exit_code: 0, stdout: "final\n")
       Progress.call(@run, stdout: "late\n", stderr: "")

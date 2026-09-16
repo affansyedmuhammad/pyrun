@@ -26,7 +26,7 @@
         <%= link_to "Run again", new_run_path(run_id: @run.id), class: "btn btn-secondary" %>
       <% else %>
         <%# Re-enabled by the Turbo refresh that arrives when the worker finishes. %>
-        <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Available once this run finishes">Run again</button>
+        <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Available when this run finishes">Run again</button>
       <% end %>
     </div>
   </div>
@@ -43,30 +43,7 @@
     <div class="col-span-2"><dt>Limits</dt><dd class="whitespace-nowrap"><%= distance_of_time_in_words(@run.timeout_seconds) %> · <%= @run.memory_mb %> MB · <%= cpus_phrase(@run.cpus.to_f) %></dd></div>
   </dl>
 
-  <section class="mt-8">
-    <h2 class="section-title">Output</h2>
-    <% if @run.outputs_expired_at? %>
-      <p class="output-empty">Output expired and was deleted <%= relative_time(@run.outputs_expired_at) %>.</p>
-    <% elsif @run.stdout.present? %>
-      <%# While the run is going the box follows the newest line; the refresh that
-          brings the final result drops the controller, so a finished run reads from the top. %>
-      <%= tag.pre @run.stdout, id: "output", class: "output", data: { controller: ("follow-output" unless @run.finished?) } %>
-      <% if @run.stdout_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
-      <% unless @run.finished? %><p class="note">Updates as the program prints.</p><% end %>
-    <% elsif @run.finished? %>
-      <p class="output-empty">Nothing was printed.</p>
-    <% else %>
-      <p class="output-empty">Output will appear here as the program runs.</p>
-    <% end %>
-  </section>
-
-  <% if @run.stderr.present? %>
-    <section class="mt-8">
-      <h2 class="section-title">Errors</h2>
-      <%= tag.pre @run.stderr, id: "errors", class: "output output-stderr", data: { controller: ("follow-output" unless @run.finished?) } %>
-      <% if @run.stderr_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
-    </section>
-  <% end %>
+  <%= render "runs/output", run: @run %>
 
   <section class="mt-8">
     <h2 class="section-title">Code</h2>
