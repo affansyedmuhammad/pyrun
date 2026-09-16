@@ -40,6 +40,14 @@ module Pyrun
     # Refuse oversized request bodies before anything else looks at them.
     config.middleware.insert 0, Pyrun::RequestSizeLimit
 
+    # Don't advertise per-request timing (the X-Runtime header): it's a small
+    # information leak and helps timing analysis. See docs/SECURITY-REVIEW.md.
+    config.middleware.delete Rack::Runtime
+
+    # The app never generates Active Storage image variants, so disable the
+    # processor. Also silences the boot-time "image_processing gem" warning.
+    config.active_storage.variant_processor = :disabled
+
     # Hardening headers on every response. The CSP lives in its own initializer.
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "DENY",

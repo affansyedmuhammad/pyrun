@@ -35,6 +35,7 @@ class SecurityHeadersTest < ActionDispatch::IntegrationTest
     assert_equal "strict-origin-when-cross-origin", response.headers["Referrer-Policy"]
     assert_equal "same-origin", response.headers["Cross-Origin-Opener-Policy"]
     assert_includes response.headers["Permissions-Policy"].to_s, "camera=()"
+    assert_nil response.headers["X-Runtime"], "the X-Runtime timing header should be removed"
   end
 
   test "search engines are told to stay away" do
