@@ -64,6 +64,22 @@ ssh -i <your-key>.pem ec2-user@<PUBLIC_IP> 'docker --version; getent group docke
 
 Put that group id into the `job` role's `group-add` in `config/deploy.yml`.
 
+### Build the sandbox image on the host (required, once per host)
+
+Kamal ships the **app** image but not the **sandbox** image the worker runs
+untrusted code in, so it must exist on the host's Docker daemon or every run
+errors with "image not found". After the first deploy, copy the sandbox build
+files up and build it there (Docker images persist across reboots and redeploys):
+
+```sh
+ssh -i pyrun.pem ec2-user@<PUBLIC_IP> 'mkdir -p ~/sandbox'
+scp -i pyrun.pem sandbox/Dockerfile sandbox/requirements.txt ec2-user@<PUBLIC_IP>:~/sandbox/
+ssh -i pyrun.pem ec2-user@<PUBLIC_IP> 'cd ~/sandbox && docker build -t pyrun-sandbox:latest .'
+```
+
+A follow-up would automate this as a Kamal hook or push the sandbox image to the
+registry alongside the app image.
+
 ### Teardown (when the demo is done)
 
 ```sh
