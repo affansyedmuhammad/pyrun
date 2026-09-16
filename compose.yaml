@@ -1,0 +1,70 @@
+# Run the production image locally, end to end: the web server, the job worker
+# that launches sandboxes on the host Docker daemon, and a local mail catcher.
+# This is production parity for development, not the deployment itself.
+#
+#   bin/sandbox-build                                   # once: build the sandbox image on the host
+#   RAILS_MASTER_KEY=$(cat config/master.key) docker compose up --build
+#
+# Then open http://localhost:3000 (sign-up mail appears at http://localhost:8025).
+
+name: pyrun
+
+x-app: &app
+  build:
+    context: .
+  image: pyrun-app:local
+  environment: &app-env
+    RAILS_ENV: production
+    # Serve plain HTTP locally; a real deployment leaves this unset (SSL on).
+    FORCE_SSL: "false"
+    RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?set RAILS_MASTER_KEY=$(cat config/master.key)}
+    SECRET_KEY_BASE: local-development-secret-not-for-production
+    APP_HOST: localhost:3000
+    ALLOWED_EMAIL_DOMAINS: windbornesystems.com
+    ALLOWED_EMAILS: ${ALLOWED_EMAILS:-}
+    ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+    # Boot guard: sandbox capacity is validated against these.
+    HOST_MEMORY_MB: "4096"
+    HOST_CPUS: "4"
+    SANDBOX_RUNNER: docker
+    # Mail goes to the local catcher (no auth).
+    SMTP_ADDRESS: mailpit
+    SMTP_PORT: "1025"
+  volumes:
+    - storage:/rails/storage
+  depends_on:
+    mailpit:
+      condition: service_started
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "3000:80"      # Thruster listens on 80 inside the container
+
+  job:
+    <<: *app
+    command: ["./bin/jobs"]
+    # Group 0 owns the mounted socket (group-rw), so the worker reaches the host
+    # daemon without running as root. A real deployment uses a socket proxy that
+    # restricts the API instead of mounting the raw socket (see docs/DESIGN.md §10).
+    user: "1000:0"
+    # The worker launches sandbox containers as siblings on the host daemon.
+    volumes:
+      - storage:/rails/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports: []
+    depends_on:
+      web:
+        condition: service_started   # let web run db:prepare first
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025"    # web inbox
+      - "1025:1025"    # SMTP
+
+volumes:
+  storage:

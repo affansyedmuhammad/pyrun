@@ -11,7 +11,10 @@ module Authentication
     secure ? "__Host-session_id" : "session_id"
   end
 
-  SESSION_COOKIE = session_cookie_name(secure: Rails.env.production?)
+  # Tied to whether the app actually serves over SSL, not merely to the env name,
+  # so the production image can run over plain HTTP locally (FORCE_SSL=false) with
+  # a working, non-Secure cookie while a real deployment keeps the __Host- prefix.
+  SESSION_COOKIE = session_cookie_name(secure: Rails.application.config.force_ssl)
 
   # Only a relative path on this app is ever used as a return target. A single
   # leading slash and a second character that is neither slash nor backslash
@@ -91,7 +94,7 @@ module Authentication
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, login_method: method).tap do |session|
         user.update_column(:last_signed_in_at, Time.current)
         Current.session = session
-        cookies.signed[SESSION_COOKIE] = { value: session.id, httponly: true, secure: Rails.env.production?, same_site: :lax, expires: SESSION_LIFETIME.from_now }
+        cookies.signed[SESSION_COOKIE] = { value: session.id, httponly: true, secure: Rails.application.config.force_ssl, same_site: :lax, expires: SESSION_LIFETIME.from_now }
         Rails.logger.info "auth.login user=#{user.id} method=#{method} ip=#{request.remote_ip}"
       end
     end

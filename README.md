@@ -16,6 +16,17 @@ Sign up with a `windbornesystems.com` address, or put your own in a `.env` file 
 
 Without Docker, `SANDBOX_RUNNER=fake bin/dev` runs the whole app with a runner that executes nothing.
 
+## Run the production image locally
+
+Production parity in containers: the web server, the job worker that launches sandboxes on the host Docker daemon, and a local mail catcher. This is the same image that deploys.
+
+```sh
+bin/sandbox-build                                            # once: build the sandbox image on the host
+RAILS_MASTER_KEY=$(cat config/master.key) docker compose up --build
+```
+
+Open http://localhost:3000, and the sign-up and reset mail appears at http://localhost:8025 (Mailpit). The compose run sets `FORCE_SSL=false` so it serves plain HTTP; a real deployment leaves SSL on. Only the `job` container mounts the Docker socket; `web` never does.
+
 ## Tests
 
 ```sh
@@ -25,6 +36,8 @@ bin/rubocop && bin/brakeman && bin/bundler-audit
 ```
 
 Every feature was written test-first; the history alternates red and green commits.
+
+CI (`.github/workflows/ci.yml`) runs the same checks, builds the sandbox image so the isolation tests run, and installs Playwright for the system tests. It needs a `RAILS_MASTER_KEY` repository secret (the contents of `config/master.key`) to decrypt credentials for the encrypted columns.
 
 ## Configuration
 

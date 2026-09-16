@@ -24,11 +24,13 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # SSL is on by default and stays on in a real deployment. FORCE_SSL=false lets the
+  # production image run over plain HTTP locally (docker compose) or in a staging
+  # box without a TLS terminator. The session cookie's Secure/__Host- prefix follows
+  # this same setting (see the Authentication concern), so login works either way.
+  ssl = ActiveModel::Type::Boolean.new.cast(ENV.fetch("FORCE_SSL", true))
+  config.assume_ssl = ssl
+  config.force_ssl = ssl
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -96,12 +98,17 @@ Rails.application.configure do
 
   # Verification and reset mail. Credentials come through config, never the repo.
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
+  smtp = {
     address: Pyrun.config.smtp_address,
     port: Pyrun.config.smtp_port || 587,
-    user_name: Pyrun.config.smtp_username,
-    password: Pyrun.config.smtp_password,
-    authentication: :plain,
     enable_starttls_auto: true
-  }.compact
+  }
+  # Only authenticate when credentials are configured, so an auth-less local
+  # relay (a mail catcher in docker compose) works without a fake user/password.
+  if Pyrun.config.smtp_username.present?
+    smtp[:user_name] = Pyrun.config.smtp_username
+    smtp[:password] = Pyrun.config.smtp_password
+    smtp[:authentication] = :plain
+  end
+  config.action_mailer.smtp_settings = smtp
 end
