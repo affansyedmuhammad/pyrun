@@ -22,7 +22,7 @@ gem "bcrypt", "~> 3.1.7"
 
 # json 3.0 made JSON.parse options keyword-only, which Active Support 8.1.3 does not
 # yet pass, breaking every signed message (cookies, tokens). Pin until Rails catches up.
-gem "json", "< 3"
+gem "json", "< 4"
 
 # Pagination for the runs lists.
 gem "pagy", "~> 9.3"
