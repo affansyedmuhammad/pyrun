@@ -1,119 +1,93 @@
-# Name of your application. Used to uniquely configure containers.
+# Kamal deployment for pyrun.
+#
+# Architecture (docs/DESIGN.md §10): one host, two roles from the SAME image.
+#   web  - serves HTTP behind Kamal's TLS proxy. NEVER touches Docker.
+#   job  - runs bin/jobs, the only process that can reach the Docker socket and
+#          launch sandbox containers on the host daemon.
+#
+# Everything marked TODO is yours to fill at deploy time. Nothing here is secret;
+# secrets live in .kamal/secrets and are pulled from the environment.
+
 service: pyrun
 
-# Name of the container image (use your-user/app-name on external registries).
-image: pyrun
+# The image name in your registry. For GHCR this is "<github-user>/pyrun".
+image: TODO_REGISTRY_NAMESPACE/pyrun
 
-# Deploy to these servers.
+# One EC2 host runs both roles. Split onto separate hosts later for capacity.
 servers:
   web:
-    - 192.168.0.1
-  # job:
-  #   hosts:
-  #     - 192.168.0.1
-  #   cmd: bin/jobs
+    - TODO_SERVER_IP
+  job:
+    hosts:
+      - TODO_SERVER_IP
+    cmd: bin/jobs
+    options:
+      # The worker launches sandboxes on the host daemon via the mounted socket.
+      volume: "/var/run/docker.sock:/var/run/docker.sock"
+      # The container must be allowed to read that socket. On the host run
+      #   getent group docker | cut -d: -f3
+      # and put the number here so the worker joins the docker group:
+      # "group-add": "TODO_DOCKER_GID"
 
-# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
-# If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
-#
-# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
-#
-# Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
-#
-# proxy:
-#   ssl: true
-#   host: app.example.com
+# TLS is terminated by Kamal's proxy with an automatic Let's Encrypt certificate.
+# Needs a real domain whose DNS A record points at TODO_SERVER_IP.
+proxy:
+  ssl: true
+  host: TODO_DOMAIN            # e.g. pyrun.example.com
+  app_port: 80                # Thruster listens on 80 inside the web container
 
-# Where you keep your container images.
+# Where the built image is pushed and pulled. GHCR is easiest since the code is
+# already on GitHub; ECR and Docker Hub are alternatives (see DEPLOY.md).
 registry:
-  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
-  server: localhost:5555
+  server: ghcr.io
+  username: TODO_GITHUB_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD  # a GitHub token with write:packages (see .kamal/secrets)
 
-  # Needed for authenticated registries.
-  # username: your-user
-
-  # Always use an access token rather than real password when possible.
-  # password:
-  #   - KAMAL_REGISTRY_PASSWORD
-
-# Inject ENV variables into containers (secrets come from .kamal/secrets).
+# Environment for every container. Secrets come from .kamal/secrets.
 env:
   secret:
-    - RAILS_MASTER_KEY
+    - RAILS_MASTER_KEY         # decrypts credentials (incl. secret_key_base and the encryption keys)
+    - SMTP_PASSWORD
   clear:
-    # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
-    # When you start using multiple servers, you should split out job processing to a dedicated machine.
-    SOLID_QUEUE_IN_PUMA: true
+    # Jobs run in the dedicated job role, NOT inside Puma, so the web process
+    # never needs Docker access.
+    SOLID_QUEUE_IN_PUMA: false
+    SANDBOX_RUNNER: docker
 
-    # Set number of processes dedicated to Solid Queue (default: 1)
-    # JOB_CONCURRENCY: 3
+    # Boot guard (security review 5 & 10): the app refuses to start in production
+    # unless the host size is declared, so sandbox capacity is validated.
+    HOST_MEMORY_MB: "TODO_MB"   # e.g. 2048 on a t3.small; keep concurrency*256MB under this
+    HOST_CPUS: "TODO_CPUS"      # e.g. 2 on a t3.small
 
-    # Set number of cores available to the application on each server (default: 1).
-    # WEB_CONCURRENCY: 2
+    # Identity and links.
+    APP_HOST: TODO_DOMAIN
+    ALLOWED_EMAIL_DOMAINS: windbornesystems.com
+    # ALLOWED_EMAILS: you@example.com
+    ADMIN_EMAILS: TODO_YOUR_EMAIL
 
-    # Match this to any external database server to configure Active Record correctly
-    # Use pyrun-db for a db accessory server on same machine via local kamal docker network.
-    # DB_HOST: 192.168.0.2
+    # Mail. Amazon SES over SMTP (request production access early), or a Gmail
+    # app password for an immediate demo. Password goes in .kamal/secrets.
+    SMTP_ADDRESS: TODO_SMTP_HOST     # e.g. email-smtp.us-east-1.amazonaws.com
+    SMTP_PORT: "587"
+    SMTP_USERNAME: TODO_SMTP_USERNAME
+    MAIL_FROM: TODO_FROM_ADDRESS     # e.g. pyrun@your-domain
 
-    # Log everything from Rails
-    # RAILS_LOG_LEVEL: debug
-
-# Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
-# "bin/kamal logs -r job" will tail logs from the first server in the job section.
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+  prepare: app exec "bin/rails db:prepare"   # run once after the first deploy
 
-# Use a persistent storage volume for sqlite database files and local Active Storage files.
-# Recommended to change this to a mounted volume path that is backed up off server.
+# SQLite files (primary, queue, cache, cable) live on a persistent volume.
+# Back this path up off-server; on AWS put it on an EBS volume with snapshots.
 volumes:
   - "pyrun_storage:/rails/storage"
 
-# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
-# hitting 404 on in-flight requests. Combines all files from new and old
-# version inside the asset_path.
+# Bridge fingerprinted assets between versions to avoid 404s on in-flight requests.
 asset_path: /rails/public/assets
 
-# Configure the image builder.
+# EC2 is x86_64. On an Apple-silicon laptop this builds amd64 via emulation
+# (slower); a remote builder or GitHub Actions build is faster (see DEPLOY.md).
 builder:
   arch: amd64
-
-  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
-  # remote: ssh://docker@docker-builder-server
-  #
-  # # Pass arguments and secrets to the Docker build process
-  # args:
-  #   RUBY_VERSION: ruby-3.4.10
-  # secrets:
-  #   - GITHUB_TOKEN
-  #   - RAILS_MASTER_KEY
-
-# Use a different ssh user than root
-# ssh:
-#   user: app
-
-# Use accessory services (secrets come from .kamal/secrets).
-# accessories:
-#   db:
-#     image: mysql:8.0
-#     host: 192.168.0.2
-#     # Change to 3306 to expose port to the world instead of just local network.
-#     port: "127.0.0.1:3306:3306"
-#     env:
-#       clear:
-#         MYSQL_ROOT_HOST: '%'
-#       secret:
-#         - MYSQL_ROOT_PASSWORD
-#     files:
-#       - config/mysql/production.cnf:/etc/mysql/my.cnf
-#       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
-#     directories:
-#       - data:/var/lib/mysql
-#   redis:
-#     image: valkey/valkey:8
-#     host: 192.168.0.2
-#     port: 6379
-#     directories:
-#       - data:/data
