@@ -40,7 +40,7 @@ class LoginTest < ApplicationSystemTestCase
     visit runs_path
     assert_selector "h1", text: "Check your inbox"
 
-    click_button "Send it again"
+    click_button "Send a new link"
     assert_text "We sent a new link"
     assert_equal [ users(:unverified).email_address ], ActionMailer::Base.deliveries.last.to
   end

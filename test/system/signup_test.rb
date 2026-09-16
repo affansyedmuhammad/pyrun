@@ -13,12 +13,12 @@ class SignupTest < ApplicationSystemTestCase
     assert_text "Check your inbox"
     assert_text "new.person@windbornesystems.com"
 
-    click_button "Send it again"
+    click_button "Send a new link"
     assert_text "We sent a new link to new.person@windbornesystems.com"
     assert_equal 2, ActionMailer::Base.deliveries.size
 
     visit path_from_mail(ActionMailer::Base.deliveries.last, "/verify-email/")
-    assert_text "Email verified"
+    assert_text "Your email is verified"
     assert_text "No runs yet"
     assert_selector "aside", text: "new.person@windbornesystems.com"
   end

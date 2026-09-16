@@ -1,6 +1,6 @@
 <% content_for :title, "Reset your password" %>
 <h1 class="auth-title">Reset your password</h1>
-<p class="auth-lede">Enter your email and we will send a link to choose a new one.</p>
+<p class="auth-lede">Enter your email address and we'll send you a link to choose a new password.</p>
 
 <%= form_with url: passwords_path, class: "mt-8 space-y-5" do |f| %>
   <%= f.field :email_address, as: :email, label: "Email", autofocus: true, autocomplete: "email", required: true %>

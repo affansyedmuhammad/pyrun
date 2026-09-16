@@ -36,7 +36,7 @@
           <%= render "admin/users/user", user: user, runs: @run_counts.fetch(user.id, 0), sessions: @session_counts.fetch(user.id, 0) %>
         <% end %>
         <% if @users.empty? %>
-          <tr><td colspan="6" class="py-10 text-center text-zinc-500">Nothing matches this filter.</td></tr>
+          <tr><td colspan="6" class="py-10 text-center text-zinc-500">No users match this filter.</td></tr>
         <% end %>
       </tbody>
     </table>

@@ -18,16 +18,16 @@ module RunsHelper
   # One sentence under the status heading that says what happened.
   def status_explanation(run)
     case run.status
-    when "queued" then "Waiting for a worker."
-    when "running" then "Running in the sandbox."
+    when "queued" then "Waiting to start."
+    when "running" then "Running in an isolated sandbox."
     when "succeeded" then "Finished with exit code 0."
     when "failed"
-      if run.oom_killed? then "Killed for exceeding its #{run.memory_mb} MB memory limit."
-      elsif run.stdout_truncated? || run.stderr_truncated? then "Stopped: output exceeded the #{human_bytes(run.max_output_bytes)} limit."
+      if run.oom_killed? then "Stopped for using more than #{run.memory_mb} MB of memory."
+      elsif run.stdout_truncated? || run.stderr_truncated? then "Stopped after producing more than #{human_bytes(run.max_output_bytes)} of output."
       else "The program exited with code #{run.exit_code}."
       end
-    when "timed_out" then "Killed after #{distance_of_time_in_words(run.timeout_seconds)}, the limit for a run."
-    when "errored" then "Something went wrong on our side, not in the code: #{run.error_message}"
+    when "timed_out" then "Stopped after #{distance_of_time_in_words(run.timeout_seconds)}, the time limit for a run."
+    when "errored" then "A system error stopped this run before the code could finish: #{run.error_message}"
     end
   end
 
@@ -64,8 +64,8 @@ module RunsHelper
 
   # The limits sentence on the form, interpolated from config so it is never stale.
   def limits_sentence(config = Pyrun.config)
-    "Runs for up to #{distance_of_time_in_words(config.sandbox_timeout_seconds)} with #{config.sandbox_memory_mb} MB of memory, " \
-    "#{cpus_phrase(config.sandbox_cpus)}, and no network. The first #{human_bytes(config.sandbox_max_output_bytes)} of output is kept."
+    "Each run gets up to #{distance_of_time_in_words(config.sandbox_timeout_seconds)}, #{config.sandbox_memory_mb} MB of memory, " \
+    "#{cpus_phrase(config.sandbox_cpus)}, and no network access. The first #{human_bytes(config.sandbox_max_output_bytes)} of output is kept."
   end
 
   def cpus_phrase(cpus)

@@ -1,6 +1,6 @@
-<% content_for :title, "Wrong account" %>
+<% content_for :title, "Different account" %>
 <h1 class="auth-title">This link belongs to a different account</h1>
-<p class="auth-lede">You are signed in as <strong class="text-zinc-800"><%= Current.user.email_address %></strong>. Sign out, then open the link again and sign in as the account it was sent to.</p>
+<p class="auth-lede">You are signed in as <strong class="text-zinc-800"><%= Current.user.email_address %></strong>. Sign out, open the link again, and sign in with the account it was sent to.</p>
 
 <div class="mt-8">
   <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-secondary w-full", form_class: "contents" %>

@@ -12,7 +12,7 @@
   </div>
 
   <% if Current.user.runs.none? %>
-    <p class="empty">No runs yet. <%= link_to "Run your first script", new_run_path, class: "link" %>.</p>
+    <p class="empty">No runs yet. <%= link_to "Start your first run", new_run_path, class: "link" %>.</p>
   <% else %>
     <%= render "runs/filters", path: ->(status) { runs_path(status: status) }, status: @status %>
     <%= render "runs/table", runs: @runs, show_owner: false %>

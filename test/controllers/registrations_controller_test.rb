@@ -31,7 +31,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_select "h1", "Check your inbox"
     assert_select "p", /new\.person@windbornesystems\.com/
-    assert_select "form[action=?] button", email_verifications_path, text: "Send it again"
+    assert_select "form[action=?] button", email_verifications_path, text: "Send a new link"
     assert cookies[:session_id].present?
     assert_equal [ "password" ], user.sessions.pluck(:login_method)
     assert_enqueued_email_with UserMailer, :email_verification, args: [ user ]
@@ -117,7 +117,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     get check_inbox_path
     assert_response :success
     assert_select "h1", "Check your inbox"
-    assert_select "form[action=?] button", email_verifications_path, text: "Send it again"
+    assert_select "form[action=?] button", email_verifications_path, text: "Send a new link"
   end
 
   test "signed-in users are sent home from the signup page" do
@@ -141,7 +141,7 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
         end
       end
       assert_response :too_many_requests
-      assert_select ".flash-alert", /busy right now/
+      assert_select ".flash-alert", /Too many sign-ups/
     end
   end
 

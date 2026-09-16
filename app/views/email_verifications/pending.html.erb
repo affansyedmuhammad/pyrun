@@ -1,8 +1,8 @@
 <% content_for :title, "Check your inbox" %>
 <h1 class="auth-title">Check your inbox</h1>
-<p class="auth-lede">We sent a link to <strong class="text-zinc-800"><%= Current.user.email_address %></strong>. Open it to verify your address. The link works for 24 hours.</p>
+<p class="auth-lede">We sent a link to <strong class="text-zinc-800"><%= Current.user.email_address %></strong>. Open it to verify your email address. The link works for 24 hours.</p>
 
 <div class="mt-8 flex flex-col gap-3">
-  <%= button_to "Send it again", email_verifications_path, class: "btn btn-secondary w-full", form_class: "contents" %>
+  <%= button_to "Send a new link", email_verifications_path, class: "btn btn-secondary w-full", form_class: "contents" %>
   <%= button_to "Use a different account", logout_path, method: :delete, class: "btn btn-quiet w-full", form_class: "contents" %>
 </div>

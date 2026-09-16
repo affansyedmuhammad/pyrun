@@ -17,7 +17,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
     assert_enqueued_email_with UserMailer, :password_reset, args: [ @user ]
     follow_redirect!
-    assert_select ".flash", /If that address has an account/
+    assert_select ".flash", /If an account exists for that email/
   end
 
   test "requesting a reset for an unknown address shows the same message and sends nothing" do
@@ -25,7 +25,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to login_path
     assert_enqueued_emails 0
     follow_redirect!
-    assert_select ".flash", /If that address has an account/
+    assert_select ".flash", /If an account exists for that email/
   end
 
   test "a disabled user gets no reset mail" do

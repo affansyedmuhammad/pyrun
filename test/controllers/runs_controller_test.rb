@@ -174,7 +174,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     run.update!(stdout: nil, stderr: nil, outputs_expired_at: 1.day.ago)
     get run_path(run)
     assert_select "p", /Output expired/
-    assert_select "p", { text: /Nothing was printed/, count: 0 }
+    assert_select "p", { text: /No output/, count: 0 }
   end
 
   test "a queued run says it is waiting, counts the wait, and subscribes to updates" do

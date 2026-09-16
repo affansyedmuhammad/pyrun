@@ -3,7 +3,7 @@
 en:
   registrations:
     domain_restricted: "Sign-ups are limited to %{domains} addresses."
-    rate_limited: "Sign-ups are busy right now. Please try again in a little while."
+    rate_limited: "Too many sign-ups right now. Try again later."
   sessions:
     create:
       failed: "Incorrect email or password."
@@ -13,12 +13,12 @@ en:
     create:
       sent: "We sent a new link to %{email}."
     show:
-      expired: "That link has expired. Send yourself a new one below."
-      verified: "Email verified. Welcome."
+      expired: "This link has expired. Request a new one below."
+      verified: "Your email is verified. Welcome."
   passwords:
-    invalid_token: "That link is invalid or has expired. Request a new one."
+    invalid_token: "This link is invalid or has expired. Request a new one."
     create:
-      sent: "If that address has an account, instructions are on their way."
+      sent: "If an account exists for that email, you'll receive a link shortly."
     update:
       updated: "Password updated. Sign in with your new password."
   admin:
@@ -43,9 +43,9 @@ en:
     submit:
       paused: "Runs are paused for maintenance. Try again later."
       too_many_active:
-        one: "You already have 1 run waiting or running. Wait for it to finish."
-        other: "You already have %{count} runs waiting or running. Wait for one to finish."
-      queue_full: "The queue is busy right now. Try again in a minute."
+        one: "You already have 1 run in progress. Wait for it to finish."
+        other: "You already have %{count} runs in progress. Wait for one to finish."
+      queue_full: "The system is busy right now. Try again in a minute."
   password_rules:
     length: "At least %{count} characters"
     uppercase: "An uppercase letter"
