@@ -1,6 +1,6 @@
 # pyrun
 
-Submit Python, run it in an isolated sandbox for up to two minutes, keep what it printed, browse past runs. Built for the WindBorne take-home. The design, threat model, and change map are in [docs/DESIGN.md](docs/DESIGN.md).
+Submit Python, run it in an isolated sandbox for up to two minutes, keep what it printed, browse past runs. Built for the WindBorne take-home. The design, threat model, and change map are in [docs/DESIGN.md](docs/DESIGN.md); how it runs in production, the trade-offs, measured performance and what comes next are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Run it locally
 
