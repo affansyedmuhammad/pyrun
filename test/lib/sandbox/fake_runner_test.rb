@@ -38,6 +38,23 @@ module Sandbox
       assert_equal [ "boom", "python3.12", 7 ], seen
     end
 
+    test "reports scripted progress before the result and hands the block to a scripted lambda" do
+      runner = FakeRunner.new
+      limits = Limits.new(timeout_seconds: 1, memory_mb: 1, cpus: 1.0, pids_limit: 1, max_output_bytes: 100)
+      seen = []
+      FakeRunner.respond_with(Result.new(status: :succeeded, exit_code: 0, stdout: "a\nb\n"), progress: [ [ "a\n", "" ], [ "a\nb\n", "" ] ]) do
+        result = runner.run("print(1)", runtime: Runtime.default, limits: limits) { |out, err| seen << [ out, err ] }
+        assert_equal "a\nb\n", result.stdout
+      end
+      assert_equal [ [ "a\n", "" ], [ "a\nb\n", "" ] ], seen
+
+      yielded = nil
+      FakeRunner.respond_with(->(_code, runtime:, limits:, &progress) { progress&.call("p\n", ""); Result.new(status: :succeeded, exit_code: 0) }) do
+        runner.run("x", runtime: Runtime.default, limits: limits) { |out, _err| yielded = out }
+      end
+      assert_equal "p\n", yielded
+    end
+
     test "Sandbox.runner picks the implementation from config" do
       with_config(sandbox_runner: "fake") do
         assert_kind_of FakeRunner, Sandbox.runner

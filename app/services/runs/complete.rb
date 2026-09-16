@@ -32,12 +32,14 @@ module Runs
       Rails.logger.error "run.errored run=#{@run.id} message=#{message.to_s.inspect}"
     end
 
+    # Python can print arbitrary bytes. Postgres refuses NUL in text and nothing
+    # downstream should have to think about invalid UTF-8. Progress uses it too.
+    def self.clean(text)
+      text.to_s.dup.force_encoding(Encoding::UTF_8).scrub("�").delete("\0")
+    end
+
     private
-      # Python can print arbitrary bytes. Postgres refuses NUL in text and nothing
-      # downstream should have to think about invalid UTF-8.
-      def clean(text)
-        text.to_s.dup.force_encoding(Encoding::UTF_8).scrub("�").delete("\0")
-      end
+      def clean(text) = self.class.clean(text)
 
       def measured_duration(finished_at)
         ((finished_at - @run.started_at) * 1000).round if @run.started_at

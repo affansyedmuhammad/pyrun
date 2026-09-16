@@ -149,6 +149,16 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", new_run_path(run_id: run.id)
   end
 
+  test "the run page shows the output so far while a run is still running" do
+    sign_in_as @user
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: 2.seconds.ago, stdout: "line 1\nline 2\n")
+    get run_path(run)
+    assert_select "h1", /Running/
+    assert_select "pre.output", /line 2/
+    assert_select "pre.output[data-controller=?]", "follow-output"
+  end
+
   test "output is escaped, never rendered as markup" do
     sign_in_as @user
     run = @user.runs.create!(code: "print('<b>x</b>')", stdout: "<b>bold</b><script>alert(1)</script>", status: "succeeded", exit_code: 0,

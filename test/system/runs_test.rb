@@ -46,6 +46,28 @@ class RunsTest < ApplicationSystemTestCase
     assert page.evaluate_script("window.__stayed"), "the list must update in place, not reload"
   end
 
+  test "output appears on the run page while it is still running and the box follows the newest line" do
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: Time.current)
+    sign_in users(:verified)
+    visit run_path(run)
+    assert_selector "h1", text: "Running"
+    assert_no_selector "pre#output"
+    page.execute_script("window.__stayed = true")
+
+    Runs::Progress.call(run, stdout: "line 1\n", stderr: "")
+    assert_selector "pre#output", text: "line 1"
+    assert_selector "h1", text: "Running"
+
+    Runs::Progress.call(run, stdout: (1..200).map { |i| "line #{i}" }.join("\n") + "\n", stderr: "")
+    assert_selector "pre#output", text: "line 200"
+    assert_eventually_js "(() => { const p = document.querySelector('pre#output'); return p.scrollTop + p.clientHeight >= p.scrollHeight - 4 })()", "the output box must follow the newest line"
+    assert page.evaluate_script("window.__stayed"), "the page must update in place, not reload"
+
+    Runs::Complete.call(run, Sandbox::Result.new(status: :succeeded, exit_code: 0, stdout: "done\n", stderr: "", duration_ms: 10))
+    assert_selector "h1", text: "Succeeded"
+  end
+
   test "a running run shows the elapsed time ticking up and a bar filling toward the limit" do
     run = runs(:verified_queued)
     run.update!(status: "running", started_at: 3.seconds.ago)
@@ -188,6 +210,10 @@ class RunsTest < ApplicationSystemTestCase
     end
 
     # The textarea is hidden behind the CodeMirror editor; type where a person would.
+    def assert_eventually_js(expression, message)
+      page.document.synchronize(3) { page.evaluate_script(expression) or raise Capybara::ElementNotFound, message }
+    end
+
     def fill_in_code(text)
       editor = find(".cm-content")
       editor.click

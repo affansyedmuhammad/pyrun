@@ -149,6 +149,16 @@ module Sandbox
       assert_not result.stdout_truncated
     end
 
+    test "output is reported while the program is still running" do
+      snapshots = []
+      result = execute("import time\nfor i in range(3):\n    print(i, flush=True)\n    time.sleep(1.1)") { |stdout, _stderr| snapshots << stdout }
+      assert_equal :succeeded, result.status, result.inspect
+      assert_equal "0\n1\n2\n", result.stdout
+      assert_operator snapshots.size, :>=, 2, "expected progress about once a second, got #{snapshots.inspect}"
+      assert_operator snapshots.first.bytesize, :<, result.stdout.bytesize
+      assert snapshots.each_cons(2).all? { |a, b| b.start_with?(a) }, "snapshots must only grow"
+    end
+
     test "reading stdin hits EOF immediately" do
       result = execute("input()")
       assert_equal :failed, result.status
@@ -199,8 +209,8 @@ module Sandbox
         Limits.new(**{ timeout_seconds: 5, memory_mb: 64, cpus: 0.5, pids_limit: 16, max_output_bytes: 100_000 }.merge(overrides))
       end
 
-      def execute(code, **overrides)
-        @runner.run(code, runtime: Runtime.default, limits: limits(**overrides))
+      def execute(code, **overrides, &progress)
+        @runner.run(code, runtime: Runtime.default, limits: limits(**overrides), &progress)
       end
 
       def labelled_containers

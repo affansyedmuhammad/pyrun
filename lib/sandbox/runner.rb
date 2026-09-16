@@ -3,9 +3,11 @@ module Sandbox
   # written against this, so a gVisor, Firecracker, or remote runner is a drop-in.
   class Runner
     # Executes +code+ under +runtime+ (Sandbox::Runtime::Definition) with +limits+
-    # (Sandbox::Limits) and returns a Sandbox::Result. Must never raise for
-    # anything the user's code does; raising means the platform failed.
-    def run(code, runtime:, limits:)
+    # (Sandbox::Limits) and returns a Sandbox::Result. If a block is given it is
+    # called with (stdout_so_far, stderr_so_far) about once a second while the
+    # program runs, so callers can show output before the run ends. Must never
+    # raise for anything the user's code does; raising means the platform failed.
+    def run(code, runtime:, limits:, &on_progress)
       raise NotImplementedError
     end
 

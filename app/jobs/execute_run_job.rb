@@ -21,7 +21,9 @@ class ExecuteRunJob < ApplicationJob
   private
     def execute(run)
       run.update!(status: "running", started_at: Time.current)
-      result = Sandbox.runner.run(run.code, runtime: run.runtime_definition, limits: run.limits)
+      result = Sandbox.runner.run(run.code, runtime: run.runtime_definition, limits: run.limits) do |stdout, stderr|
+        Runs::Progress.call(run, stdout: stdout, stderr: stderr)
+      end
       Runs::Complete.call(run, result)
     rescue => error
       Rails.error.report(error, handled: true, context: { run_id: run.id })

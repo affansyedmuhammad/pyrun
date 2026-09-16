@@ -11,6 +11,7 @@ module Sandbox
     LABEL = "app=pyrun"
     NAME_PREFIX = "pyrun-"
     GRACE_SECONDS = 5 # how long past the in-container timeout the supervisor waits before killing
+    PROGRESS_INTERVAL = 1 # seconds between reports of the output so far
     READ_CHUNK = 16 * 1024
     TIMEOUT_EXIT_CODES = [ 124, 137 ].freeze
 
@@ -27,9 +28,9 @@ module Sandbox
       exit_code.zero? ? :succeeded : :failed
     end
 
-    def run(code, runtime:, limits:)
+    def run(code, runtime:, limits:, &on_progress)
       name = "#{NAME_PREFIX}#{SecureRandom.hex(6)}"
-      supervision = supervise(command(name: name, runtime: runtime, limits: limits), code, name: name, limits: limits)
+      supervision = supervise(command(name: name, runtime: runtime, limits: limits), code, name: name, limits: limits, &on_progress)
       inspection = inspect_container(name)
 
       killed_for = supervision.killed_for
@@ -97,13 +98,25 @@ module Sandbox
     end
 
     private
-      def supervise(argv, code, name:, limits:)
+      def supervise(argv, code, name:, limits:, &on_progress)
         started = monotonic
         killed_for = nil
         kill_mutex = Mutex.new
         kill_thread = nil
+        buffer_mutex = Mutex.new
         buffers = { stdout: +"".b, stderr: +"".b }
         truncated = { stdout: false, stderr: false }
+
+        # Hand the caller a copy of what has been printed so far, only when it grew.
+        reported = { stdout: 0, stderr: 0 }
+        report_progress = lambda do
+          next unless on_progress
+          snapshot = buffer_mutex.synchronize { buffers.transform_values(&:dup) }
+          sizes = snapshot.transform_values(&:bytesize)
+          next if sizes == reported
+          reported = sizes
+          on_progress.call(snapshot[:stdout], snapshot[:stderr])
+        end
 
         # Kill the container asynchronously and at most once. It must NOT block the
         # reader threads: `docker kill` waits for the process to die, and a process
@@ -131,9 +144,12 @@ module Sandbox
             Thread.new do
               loop do
                 chunk = io.readpartial(READ_CHUNK)
-                room = limits.max_output_bytes - buffers[key].bytesize
-                buffers[key] << chunk.byteslice(0, room) if room.positive?
-                if chunk.bytesize > room && !truncated[key] # part of this chunk did not fit: the cap is exceeded, not merely reached
+                overflow = buffer_mutex.synchronize do
+                  room = limits.max_output_bytes - buffers[key].bytesize
+                  buffers[key] << chunk.byteslice(0, room) if room.positive?
+                  chunk.bytesize > room
+                end
+                if overflow && !truncated[key] # part of this chunk did not fit: the cap is exceeded, not merely reached
                   truncated[key] = true
                   trigger_kill.call(:output)
                 end
@@ -146,7 +162,16 @@ module Sandbox
           end
           threads = [ reader.call(stdout, :stdout), reader.call(stderr, :stderr) ]
 
-          trigger_kill.call(:timeout) unless waiter.join(limits.timeout_seconds + GRACE_SECONDS)
+          # Wake about once a second to report what the program has printed so
+          # far, and kill it at the deadline.
+          deadline = started + limits.timeout_seconds + GRACE_SECONDS
+          until waiter.join(PROGRESS_INTERVAL)
+            if monotonic >= deadline
+              trigger_kill.call(:timeout)
+              break
+            end
+            report_progress.call
+          end
 
           unless waiter.join(GRACE_SECONDS)
             # Last resort if the client still has not detached: force-remove the

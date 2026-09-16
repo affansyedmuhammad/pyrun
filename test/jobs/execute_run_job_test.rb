@@ -38,6 +38,20 @@ class ExecuteRunJobTest < ActiveJob::TestCase
     assert_equal [ "python3.12", 120 ], seen
   end
 
+  test "output so far is written onto the run while it is still running" do
+    observed = nil
+    Sandbox::FakeRunner.respond_with(->(_code, runtime:, limits:, &progress) {
+      progress.call("partial\n".b, "".b)
+      observed = Run.find(@run.id).slice("status", "stdout")
+      Sandbox::Result.new(status: :succeeded, exit_code: 0, stdout: "partial\nfinal\n", duration_ms: 5)
+    }) do
+      ExecuteRunJob.perform_now(@run)
+    end
+    assert_equal({ "status" => "running", "stdout" => "partial\n" }, observed)
+    assert_equal "partial\nfinal\n", @run.reload.stdout
+    assert_equal "succeeded", @run.status
+  end
+
   test "does nothing for a run that is already finished" do
     finished = runs(:verified_succeeded)
     Sandbox::FakeRunner.respond_with(->(*) { flunk "the runner must not be called" }) do

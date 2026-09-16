@@ -47,22 +47,23 @@
     <h2 class="section-title">Output</h2>
     <% if @run.outputs_expired_at? %>
       <p class="output-empty">Output expired and was deleted <%= relative_time(@run.outputs_expired_at) %>.</p>
-    <% elsif @run.finished? %>
-      <% if @run.stdout.present? %>
-        <pre class="output"><%= @run.stdout %></pre>
-      <% else %>
-        <p class="output-empty">Nothing was printed.</p>
-      <% end %>
+    <% elsif @run.stdout.present? %>
+      <%# While the run is going the box follows the newest line; the refresh that
+          brings the final result drops the controller, so a finished run reads from the top. %>
+      <%= tag.pre @run.stdout, id: "output", class: "output", data: { controller: ("follow-output" unless @run.finished?) } %>
       <% if @run.stdout_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
+      <% unless @run.finished? %><p class="note">Updates as the program prints.</p><% end %>
+    <% elsif @run.finished? %>
+      <p class="output-empty">Nothing was printed.</p>
     <% else %>
-      <p class="output-empty">Output will appear here when the run finishes.</p>
+      <p class="output-empty">Output will appear here as the program runs.</p>
     <% end %>
   </section>
 
   <% if @run.stderr.present? %>
     <section class="mt-8">
       <h2 class="section-title">Errors</h2>
-      <pre class="output output-stderr"><%= @run.stderr %></pre>
+      <%= tag.pre @run.stderr, id: "errors", class: "output output-stderr", data: { controller: ("follow-output" unless @run.finished?) } %>
       <% if @run.stderr_truncated? %><p class="note">Cut at <%= human_bytes(@run.max_output_bytes) %>.</p><% end %>
     </section>
   <% end %>
