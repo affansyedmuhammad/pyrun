@@ -66,12 +66,12 @@ env:
     # ALLOWED_EMAILS: you@example.com
     ADMIN_EMAILS: TODO_YOUR_EMAIL
 
-    # Mail. Amazon SES over SMTP (request production access early), or a Gmail
-    # app password for an immediate demo. Password goes in .kamal/secrets.
-    SMTP_ADDRESS: TODO_SMTP_HOST     # e.g. email-smtp.us-east-1.amazonaws.com
+    # Mail via a Gmail app password (needs 2-Step Verification on the account).
+    # The password itself is a secret in .kamal/secrets (SMTP_PASSWORD).
+    SMTP_ADDRESS: smtp.gmail.com
     SMTP_PORT: "587"
-    SMTP_USERNAME: TODO_SMTP_USERNAME
-    MAIL_FROM: TODO_FROM_ADDRESS     # e.g. pyrun@your-domain
+    SMTP_USERNAME: TODO_YOUR_GMAIL        # e.g. you@gmail.com (full address)
+    MAIL_FROM: TODO_YOUR_GMAIL            # Gmail sends as the authenticated account, so match it
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"

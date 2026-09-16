@@ -19,10 +19,12 @@ Docker socket, which launches sandboxes). See docs/DESIGN.md §10.
 3. **A domain.** A DNS A record (e.g. `pyrun.yourdomain.com`) pointing at the
    host's Elastic IP. Kamal's proxy gets a free Let's Encrypt certificate for it.
    Without a domain there is no automatic TLS.
-4. **A mail sender.** Amazon SES over SMTP is the target, but new SES accounts
-   start in sandbox mode (only verified recipients) and production access is a
-   support request with a day or so of lead time, so file it early. For an
-   immediate demo a Gmail app password works with no lead time.
+4. **A Gmail app password** for sending mail. On the Google account: enable
+   2-Step Verification, then Security > App passwords > create one (any name).
+   You get a 16-character password; use it as `SMTP_PASSWORD` (enter it without
+   spaces). Set `SMTP_USERNAME` and `MAIL_FROM` to that full Gmail address. Gmail
+   relays verification and reset mail to any recipient, and a regular account
+   sends up to ~500 messages a day, plenty for a demo.
 5. **The master key.** The contents of `config/master.key`, exported as
    `RAILS_MASTER_KEY` when deploying (it decrypts credentials, including the
    encryption keys).
@@ -114,9 +116,10 @@ Useful: `kamal logs -f`, `kamal logs -f -r job`, `kamal app exec 'bin/rails pyru
   Actions and have Kamal pull.
 - **Socket access.** If the `job` worker logs "permission denied ... docker.sock",
   the container is not in the host's docker group; set `group-add` (above).
-- **SES sandbox.** If real mail does not arrive, check SES is out of sandbox mode
-  and the domain/sender is verified, and check the SES sending log. This is the
-  usual cause, not the app.
+- **Gmail auth.** If mail fails to send, the app password must be from an account
+  with 2-Step Verification on, entered without spaces, and `SMTP_USERNAME` /
+  `MAIL_FROM` must be that exact Gmail address. Check `kamal logs -r job` for the
+  SMTP error.
 - **Hardening to add after it's live** (see docs/SECURITY-REVIEW.md): front the
   socket with a proxy instead of mounting it raw, enable `userns-remap`, and set
   a non-zero `RETENTION_DAYS`.
