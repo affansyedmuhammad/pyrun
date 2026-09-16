@@ -98,3 +98,4 @@ builder:
 # (added to the docker group by the instance's user-data).
 ssh:
   user: ec2-user
+  keys: [ "pyrun.pem" ]
