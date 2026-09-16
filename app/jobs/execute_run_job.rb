@@ -4,8 +4,9 @@
 class ExecuteRunJob < ApplicationJob
   queue_as :sandbox
 
-  # One run at a time per person, so a burst queues behind its owner's own runs.
-  limits_concurrency to: 1, key: ->(run) { run.user_id }
+  # Runs at a time per person (MAX_CONCURRENT_RUNS_PER_USER, 1 by default), so a
+  # burst queues behind its owner's own runs and nobody can take every sandbox.
+  limits_concurrency to: Pyrun.config.max_concurrent_runs_per_user, key: ->(run) { run.user_id }
 
   # The run was deleted before a worker got to it.
   discard_on ActiveJob::DeserializationError

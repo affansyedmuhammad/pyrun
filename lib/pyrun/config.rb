@@ -33,6 +33,7 @@ module Pyrun
       host_cpus:                  [ "HOST_CPUS",                  :positive_decimal, nil ],
       max_code_bytes:             [ "MAX_CODE_BYTES",             :positive_int, 65_536 ],
       max_active_runs_per_user:   [ "MAX_ACTIVE_RUNS_PER_USER",   :positive_int, 5 ],
+      max_concurrent_runs_per_user: [ "MAX_CONCURRENT_RUNS_PER_USER", :positive_int, 1 ],
       max_queue_depth:            [ "MAX_QUEUE_DEPTH",            :positive_int, 200 ],
       runs_paused:                [ "RUNS_PAUSED",                :boolean,     false ],
       solid_queue_in_puma:        [ "SOLID_QUEUE_IN_PUMA",        :boolean,     false ],
@@ -102,6 +103,9 @@ module Pyrun
       end
       if host_cpus && sandbox_concurrency * sandbox_cpus > host_cpus
         raise Error, "SANDBOX_CONCURRENCY × SANDBOX_CPUS (#{sandbox_concurrency * sandbox_cpus}) exceeds HOST_CPUS (#{host_cpus})"
+      end
+      if max_concurrent_runs_per_user > sandbox_concurrency
+        raise Error, "MAX_CONCURRENT_RUNS_PER_USER (#{max_concurrent_runs_per_user}) exceeds SANDBOX_CONCURRENCY (#{sandbox_concurrency}): one person cannot use more sandboxes than exist"
       end
     end
 

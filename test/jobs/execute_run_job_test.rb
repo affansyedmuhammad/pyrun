@@ -3,6 +3,15 @@ require "test_helper"
 class ExecuteRunJobTest < ActiveJob::TestCase
   setup { @run = runs(:verified_queued) }
 
+  test "runs per person are limited by MAX_CONCURRENT_RUNS_PER_USER" do
+    assert_equal 1, ExecuteRunJob.concurrency_limit
+    with_config(max_concurrent_runs_per_user: 2, sandbox_concurrency: 2) { load Rails.root.join("app/jobs/execute_run_job.rb") }
+    assert_equal 2, ExecuteRunJob.concurrency_limit
+  ensure
+    load Rails.root.join("app/jobs/execute_run_job.rb")
+    assert_equal 1, ExecuteRunJob.concurrency_limit
+  end
+
   test "is queued on the sandbox queue" do
     assert_equal "sandbox", ExecuteRunJob.new.queue_name
   end

@@ -65,6 +65,9 @@ env:
     # full CPU: when both are CPU-bound, web and worker share the cores through
     # the scheduler and stay responsive. Memory: 2 x SANDBOX_MEMORY_MB (256).
     SANDBOX_CONCURRENCY: "2"
+    # Runs at a time per person. Keep it at half the sandboxes or fewer, so one
+    # person can never take every slot; the boot guard refuses more than exist.
+    MAX_CONCURRENT_RUNS_PER_USER: "1"
     HOST_CPUS: "2"             # t3.small has 2 vCPU
 
     # Identity and links.

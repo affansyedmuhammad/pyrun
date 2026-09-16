@@ -92,7 +92,7 @@ account from your Organizations console.
 ## Fill in config/deploy.yml
 
 Replace every `TODO_...`: the image namespace, server IP, domain, registry
-username, `HOST_MEMORY_MB` / `HOST_CPUS` (match the instance), `SANDBOX_CONCURRENCY` (containers at once; the boot guard checks it fits the host), `ADMIN_EMAILS`,
+username, `HOST_MEMORY_MB` / `HOST_CPUS` (match the instance), `SANDBOX_CONCURRENCY` (containers at once; the boot guard checks it fits the host), `MAX_CONCURRENT_RUNS_PER_USER` (per person, at most the total), `ADMIN_EMAILS`,
 and the SMTP host/username/from. On the host, find the docker group id with
 `getent group docker | cut -d: -f3` and uncomment `group-add` in the `job` role
 so the worker can read the socket.

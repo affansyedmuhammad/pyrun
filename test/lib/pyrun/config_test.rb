@@ -22,6 +22,7 @@ module Pyrun
       assert_nil c.host_cpus
       assert_equal 65_536, c.max_code_bytes
       assert_equal 5, c.max_active_runs_per_user
+      assert_equal 1, c.max_concurrent_runs_per_user
       assert_equal 200, c.max_queue_depth
       assert_equal false, c.runs_paused
       assert_equal false, c.solid_queue_in_puma
@@ -130,6 +131,12 @@ module Pyrun
       assert_empty Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "false")).production_safety_errors
       assert Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "true")).production_safety_errors.any? { |m| m =~ /SOLID_QUEUE_IN_PUMA/ }
       assert_empty Config.from_env(host.merge("SOLID_QUEUE_IN_PUMA" => "true", "SANDBOX_RUNNER" => "fake")).production_safety_errors
+    end
+
+    test "MAX_CONCURRENT_RUNS_PER_USER is parsed and can never exceed SANDBOX_CONCURRENCY" do
+      assert_equal 2, Config.from_env("MAX_CONCURRENT_RUNS_PER_USER" => "2", "SANDBOX_CONCURRENCY" => "2").max_concurrent_runs_per_user
+      error = assert_raises(Config::Error) { Config.from_env("MAX_CONCURRENT_RUNS_PER_USER" => "3", "SANDBOX_CONCURRENCY" => "2") }
+      assert_match(/MAX_CONCURRENT_RUNS_PER_USER.*SANDBOX_CONCURRENCY/, error.message)
     end
 
     test "mail_from defaults to the app host without its port" do

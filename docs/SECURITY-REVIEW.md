@@ -86,6 +86,10 @@ and monitor bounce rate. Consider not creating the row until the first
 verification click for brand-new addresses.
 
 ### 3. A few verified accounts can monopolize all sandbox capacity — Medium (availability)
+Update: runs at a time per person is `MAX_CONCURRENT_RUNS_PER_USER` (1 on the demo
+host, which runs 2 sandboxes), validated at boot to never exceed the total. Keep it
+at half the slots or fewer. A fair scheduler across people is still future work.
+
 **What.** `ExecuteRunJob` limits one *running* job per user
 (`limits_concurrency to: 1, key: user_id`), and the sandbox queue runs
 `SANDBOX_CONCURRENCY` threads (default 2). There is no global per-time budget or
