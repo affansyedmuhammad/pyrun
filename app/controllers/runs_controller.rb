@@ -11,7 +11,7 @@ class RunsController < ApplicationController
   end
 
   def new
-    @run = Run.new(code: params[:code])
+    @run = Run.new(code: source_run&.code)
   end
 
   def create
@@ -44,6 +44,13 @@ class RunsController < ApplicationController
   private
     def run_params
       params.expect(run: [ :code, :runtime ])
+    end
+
+    # "Run again" names the run to copy; the code itself never rides in a URL. It
+    # can be 64 KB, past what servers accept in a request line, and it may hold
+    # pasted secrets that would land in browser history and proxy logs.
+    def source_run
+      Current.user.visible_runs.find(params[:run_id]) if params[:run_id].present?
     end
 
     # Reads the limit from config at request time, like every other cap.

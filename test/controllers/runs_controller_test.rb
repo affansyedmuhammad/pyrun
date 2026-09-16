@@ -72,10 +72,20 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "textarea[name=?]", "run[code]"
   end
 
-  test "the new run page can be prefilled to run something again" do
+  test "the new run page can be prefilled from one of my runs to run it again" do
     sign_in_as @user
-    get new_run_path(code: "print('again')")
-    assert_select "textarea", /print\('again'\)/
+    get new_run_path(run_id: runs(:verified_failed).id)
+    assert_select "textarea", /raise RuntimeError\('boom'\)/
+  end
+
+  test "the new run page never takes code from the URL nor prefills from someone else's run" do
+    sign_in_as @user
+    get new_run_path(code: "print('smuggled')")
+    assert_response :success
+    assert_select "textarea", { text: /smuggled/, count: 0 }
+
+    get new_run_path(run_id: runs(:admin_succeeded).id)
+    assert_response :not_found
   end
 
   test "submitting code creates a queued run stamped with the current limits and goes to it" do
@@ -128,7 +138,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "pre", /RuntimeError: boom/
     assert_select "dd", "1" # exit code
     assert_select "dd", /640 ms/
-    assert_select "a[href=?]", new_run_path(code: run.code)
+    assert_select "a[href=?]", new_run_path(run_id: run.id)
   end
 
   test "output is escaped, never rendered as markup" do
@@ -181,7 +191,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
 
     get run_path(run)
     assert_select "button[disabled]", text: "Run again"
-    assert_select "a[href=?]", new_run_path(code: run.code), count: 0
+    assert_select "a[href=?]", new_run_path(run_id: run.id), count: 0
 
     run.update!(status: "running", started_at: 5.seconds.ago)
     get run_path(run)
@@ -189,7 +199,7 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
 
     run.update!(status: "succeeded", finished_at: Time.current, exit_code: 0)
     get run_path(run)
-    assert_select "a[href=?]", new_run_path(code: run.code), text: "Run again"
+    assert_select "a[href=?]", new_run_path(run_id: run.id), text: "Run again"
     assert_select "button[disabled]", count: 0
   end
 

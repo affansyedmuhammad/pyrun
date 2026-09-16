@@ -23,7 +23,7 @@
     <div class="flex flex-wrap items-center justify-end gap-2">
       <%= render "runs/pager", newer: @newer, older: @older, from: (@from_all ? "all" : nil) %>
       <% if @run.finished? %>
-        <%= link_to "Run again", new_run_path(code: @run.code), class: "btn btn-secondary" %>
+        <%= link_to "Run again", new_run_path(run_id: @run.id), class: "btn btn-secondary" %>
       <% else %>
         <%# Re-enabled by the Turbo refresh that arrives when the worker finishes. %>
         <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Available once this run finishes">Run again</button>

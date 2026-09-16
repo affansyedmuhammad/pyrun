@@ -177,6 +177,15 @@ Password-reset requests for a real address send that user mail (rate-limited 5
 per 15 min per email, 10 per 15 min per IP). Enough to annoy, not to take over.
 Accepted trade-off of the uniform-response design.
 
+### 12. "Run again" carried the whole script in the URL — Low  ✔ fixed
+`/runs/new?code=<script>` put up to 64 KB of user code in a GET query string.
+Two consequences: Puma refuses request lines over 12 KB, so the link answered
+400 for any script past a few KB (URL-encoding triples whitespace), and code that
+is encrypted at rest because it may contain pasted secrets was written in clear
+to browser history, the proxy access log, and any upstream logs. Fixed: the link
+is `/runs/new?run_id=N`, resolved through `visible_runs` (404 for runs the user
+may not see), and the `code` parameter is no longer read.
+
 ---
 
 ## Suggested order of work
