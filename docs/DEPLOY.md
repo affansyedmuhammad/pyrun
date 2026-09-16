@@ -8,9 +8,10 @@ Docker socket, which launches sandboxes). See docs/DESIGN.md §10.
 
 ## What you provide (the parts I can't create for you)
 
-1. **A host.** An EC2 instance (a `t3.small`, 2 vCPU / 2 GB, is enough to start),
-   Ubuntu, with Docker installed and your SSH key authorized. An Elastic IP so
-   the address is stable.
+1. **A host.** Created by the CloudFormation stack in `deploy/aws/pyrun-stack.yaml`
+   (VPC, public subnet, an EC2 instance with Docker preinstalled, and an Elastic
+   IP). See "Provision the host with CloudFormation" below. Deleting the stack
+   removes everything, which is why it suits a throwaway account.
 2. **A registry.** Where the image is stored. Easiest is GitHub Container
    Registry (ghcr.io) since the code is already on GitHub: create a personal
    access token with `write:packages`. Alternatives: Amazon ECR (AWS-native) or
@@ -25,6 +26,50 @@ Docker socket, which launches sandboxes). See docs/DESIGN.md §10.
 5. **The master key.** The contents of `config/master.key`, exported as
    `RAILS_MASTER_KEY` when deploying (it decrypts credentials, including the
    encryption keys).
+
+## Provision the host with CloudFormation
+
+One stack stands up everything; deleting it tears everything down.
+
+First, in the new account's EC2 console, create a **key pair** (EC2 > Key Pairs >
+Create), download the `.pem`, and `chmod 600` it. Then deploy the stack.
+
+Console: CloudFormation > Create stack > upload `deploy/aws/pyrun-stack.yaml`,
+set `KeyName` to your key pair and `SSHLocation` to `<your-ip>/32` (from
+https://checkip.amazonaws.com), and create it. The **Outputs** tab shows the
+public IP.
+
+Or the CLI (with the throwaway account's credentials configured):
+
+```sh
+aws cloudformation deploy \
+  --template-file deploy/aws/pyrun-stack.yaml \
+  --stack-name pyrun \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameter-overrides KeyName=<your-key-pair> SSHLocation=<your-ip>/32
+
+aws cloudformation describe-stacks --stack-name pyrun \
+  --query "Stacks[0].Outputs" --output table
+```
+
+Point your domain's A record at the returned IP (or skip the domain and deploy
+over the IP with `proxy.ssl: false` for a first pass). SSH in once to confirm
+Docker is up and to read the docker group id:
+
+```sh
+ssh -i <your-key>.pem ec2-user@<PUBLIC_IP> 'docker --version; getent group docker | cut -d: -f3'
+```
+
+Put that group id into the `job` role's `group-add` in `config/deploy.yml`.
+
+### Teardown (when the demo is done)
+
+```sh
+aws cloudformation delete-stack --stack-name pyrun
+```
+
+That removes the instance, EIP, VPC, and everything else. Then close the AWS
+account from your Organizations console.
 
 ## Fill in config/deploy.yml
 

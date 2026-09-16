@@ -91,3 +91,8 @@ asset_path: /rails/public/assets
 # (slower); a remote builder or GitHub Actions build is faster (see DEPLOY.md).
 builder:
   arch: amd64
+
+# The CloudFormation stack uses Amazon Linux 2023, whose SSH user is ec2-user
+# (added to the docker group by the instance's user-data).
+ssh:
+  user: ec2-user
