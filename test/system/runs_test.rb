@@ -32,6 +32,20 @@ class RunsTest < ApplicationSystemTestCase
     assert page.evaluate_script("window.__stayed"), "the page must update in place, not reload"
   end
 
+  test "the runs list updates in place when one of my runs finishes" do
+    run = runs(:verified_queued)
+    sign_in users(:verified)
+    assert_selector "h1", text: "Runs"
+    assert_selector "tbody tr", text: /Queued\s+import time/
+    page.execute_script("window.__stayed = true")
+
+    run.update!(status: "succeeded", exit_code: 0, started_at: 2.seconds.ago, finished_at: Time.current, duration_ms: 640)
+
+    assert_selector "tbody tr", text: /Succeeded\s+import time/
+    assert_no_selector "tbody tr", text: /Queued\s+import time/
+    assert page.evaluate_script("window.__stayed"), "the list must update in place, not reload"
+  end
+
   test "a running run shows the elapsed time ticking up and a bar filling toward the limit" do
     run = runs(:verified_queued)
     run.update!(status: "running", started_at: 3.seconds.ago)

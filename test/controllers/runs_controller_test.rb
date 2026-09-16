@@ -58,6 +58,14 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 8, css_select("tbody tr").size
   end
 
+  test "the runs list subscribes to my own live stream only, and morphs on refresh" do
+    sign_in_as @user
+    get runs_path
+    assert_select "turbo-cable-stream-source[signed-stream-name=?]", Turbo::StreamsChannel.signed_stream_name([ @user, :runs ])
+    assert_select "turbo-cable-stream-source", count: 1
+    assert_select "meta[name=turbo-refresh-method][content=morph]"
+  end
+
   test "the new run page states the limits from config" do
     sign_in_as @user
     with_config(sandbox_timeout_seconds: 300, sandbox_memory_mb: 512, sandbox_cpus: 2.0, sandbox_max_output_bytes: 2_000_000) do

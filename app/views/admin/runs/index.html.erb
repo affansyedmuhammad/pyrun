@@ -1,4 +1,9 @@
 <% content_for :title, "All runs" %>
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
+<% end %>
+<%= turbo_stream_from :all_runs %>
 <div class="page">
   <%= render "layouts/flash" %>
   <h1 class="page-title">All runs</h1>

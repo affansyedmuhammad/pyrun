@@ -94,6 +94,28 @@ class RunTest < ActiveSupport::TestCase
     assert_not_includes raw["stdout"], "hello"
   end
 
+  test "live updates go to the run page, its owner's list, and the admin list, never a global stream" do
+    later, now = [], []
+    run = users(:verified).runs.new(code: "print(1)", runtime: "python3.12", timeout_seconds: 1, memory_mb: 1, cpus: 1, pids_limit: 1, max_output_bytes: 1, queued_at: Time.current)
+    run.define_singleton_method(:broadcast_refresh_later_to) { |*streamables, **| later << streamables }
+    run.define_singleton_method(:broadcast_refresh_to) { |*streamables, **| now << streamables }
+
+    run.save!
+    assert_includes later, [ run.user, :runs ]
+    assert_includes later, [ :all_runs ]
+    assert_not_includes later, [ "runs" ], "no global stream: it would reload every person's list on anyone's run"
+
+    later.clear
+    run.update!(status: "running", started_at: Time.current)
+    assert_includes later, [ run ], "the run page"
+    assert_includes later, [ run.user, :runs ]
+    assert_includes later, [ :all_runs ]
+
+    run.destroy!
+    assert_includes now, [ run.user, :runs ]
+    assert_includes now, [ :all_runs ]
+  end
+
   test "a run is destroyed with its user" do
     user = users(:verified)
     assert_difference "Run.count", -user.runs.count do

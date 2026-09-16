@@ -20,6 +20,16 @@ module Admin
       end
     end
 
+    test "the all-runs list subscribes to the admin stream and morphs on refresh" do
+      with_config(admin_emails: [ users(:admin).email_address ]) do
+        sign_in_as users(:admin)
+        get admin_runs_path
+        assert_response :success
+        assert_select "turbo-cable-stream-source[signed-stream-name=?]", Turbo::StreamsChannel.signed_stream_name(:all_runs)
+        assert_select "meta[name=turbo-refresh-method][content=morph]"
+      end
+    end
+
     test "admins see every run with its owner, newest first" do
       with_config(admin_emails: [ users(:admin).email_address ]) do
         sign_in_as users(:admin)

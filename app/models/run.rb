@@ -26,8 +26,12 @@ class Run < ApplicationRecord
     where("created_at < :at OR (created_at = :at AND id < :id)", at: run.created_at, id: run.id).recent
   }
 
-  # The show page subscribes to this run and re-renders when the worker updates it.
-  broadcasts_refreshes
+  # Live updates: the run's own page, its owner's list, and the admin list each
+  # re-render when the worker changes a run. Never a global stream, which would
+  # reload every person's list on anyone's run.
+  after_create_commit  -> { broadcast_refresh_later_to(user, :runs); broadcast_refresh_later_to(:all_runs) }
+  after_update_commit  -> { broadcast_refresh_later; broadcast_refresh_later_to(user, :runs); broadcast_refresh_later_to(:all_runs) }
+  after_destroy_commit -> { broadcast_refresh_to(user, :runs); broadcast_refresh_to(:all_runs) }
 
   def finished? = TERMINAL_STATUSES.include?(status)
 

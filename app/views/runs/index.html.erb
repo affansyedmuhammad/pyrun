@@ -1,4 +1,9 @@
 <% content_for :title, "Runs" %>
+<% content_for :head do %>
+  <meta name="turbo-refresh-method" content="morph">
+  <meta name="turbo-refresh-scroll" content="preserve">
+<% end %>
+<%= turbo_stream_from Current.user, :runs %>
 <div class="page">
   <%= render "layouts/flash" %>
   <div class="flex items-center justify-between gap-4">
