@@ -4,6 +4,7 @@ module Runs
   class Complete
     def self.call(run, result) = new(run).record(result)
     def self.errored(run, message) = new(run).error(message)
+    def self.stopped(run) = new(run).stop
 
     def initialize(run)
       @run = run
@@ -24,6 +25,13 @@ module Runs
         runner_metadata: (result.metadata || {}).merge("image_digest" => result.image_digest).compact
       )
       Rails.logger.info "run.finished run=#{@run.id} status=#{@run.status} exit=#{@run.exit_code} ms=#{@run.duration_ms}"
+    end
+
+    # A person ended the run early, before or during execution.
+    def stop
+      finished_at = Time.current
+      @run.update!(status: "stopped", finished_at: finished_at, duration_ms: measured_duration(finished_at))
+      Rails.logger.info "run.stopped run=#{@run.id} ms=#{@run.duration_ms.inspect}"
     end
 
     def error(message)

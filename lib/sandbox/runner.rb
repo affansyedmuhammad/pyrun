@@ -5,9 +5,11 @@ module Sandbox
     # Executes +code+ under +runtime+ (Sandbox::Runtime::Definition) with +limits+
     # (Sandbox::Limits) and returns a Sandbox::Result. If a block is given it is
     # called with (stdout_so_far, stderr_so_far) about once a second while the
-    # program runs, so callers can show output before the run ends. Must never
-    # raise for anything the user's code does; raising means the platform failed.
-    def run(code, runtime:, limits:, &on_progress)
+    # program runs, so callers can show output before the run ends. +stop_when+,
+    # if given, is called on the same cadence; once it returns true the program
+    # is killed and the result's status is :stopped. Must never raise for
+    # anything the user's code does; raising means the platform failed.
+    def run(code, runtime:, limits:, stop_when: nil, &on_progress)
       raise NotImplementedError
     end
 

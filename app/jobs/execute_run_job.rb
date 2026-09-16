@@ -13,7 +13,7 @@ class ExecuteRunJob < ApplicationJob
 
   def perform(run)
     case run.status
-    when "queued" then execute(run)
+    when "queued" then run.stop_requested? ? Runs::Complete.stopped(run) : execute(run)
     when "running" then Runs::Complete.errored(run, "worker lost: the run was picked up again while still marked running")
     end
   end
@@ -21,7 +21,8 @@ class ExecuteRunJob < ApplicationJob
   private
     def execute(run)
       run.update!(status: "running", started_at: Time.current)
-      result = Sandbox.runner.run(run.code, runtime: run.runtime_definition, limits: run.limits) do |stdout, stderr|
+      stop_when = -> { Run.where(id: run.id).where.not(stop_requested_at: nil).exists? }
+      result = Sandbox.runner.run(run.code, runtime: run.runtime_definition, limits: run.limits, stop_when: stop_when) do |stdout, stderr|
         Runs::Progress.call(run, stdout: stdout, stderr: stderr)
       end
       Runs::Complete.call(run, result)

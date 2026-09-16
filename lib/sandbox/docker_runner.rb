@@ -23,14 +23,15 @@ module Sandbox
 
     def self.status_for(exit_code:, oom_killed:, killed_for:)
       return :errored if exit_code.nil?
+      return :stopped if killed_for == :stopped # a person asked; the exit code is whatever the kill produced
       return :failed if oom_killed || killed_for == :output
       return :timed_out if killed_for == :timeout
       exit_code.zero? ? :succeeded : :failed
     end
 
-    def run(code, runtime:, limits:, &on_progress)
+    def run(code, runtime:, limits:, stop_when: nil, &on_progress)
       name = "#{NAME_PREFIX}#{SecureRandom.hex(6)}"
-      supervision = supervise(command(name: name, runtime: runtime, limits: limits), code, name: name, limits: limits, &on_progress)
+      supervision = supervise(command(name: name, runtime: runtime, limits: limits), code, name: name, limits: limits, stop_when: stop_when, &on_progress)
       inspection = inspect_container(name)
 
       killed_for = supervision.killed_for
@@ -98,7 +99,7 @@ module Sandbox
     end
 
     private
-      def supervise(argv, code, name:, limits:, &on_progress)
+      def supervise(argv, code, name:, limits:, stop_when: nil, &on_progress)
         started = monotonic
         killed_for = nil
         kill_mutex = Mutex.new
@@ -163,11 +164,15 @@ module Sandbox
           threads = [ reader.call(stdout, :stdout), reader.call(stderr, :stderr) ]
 
           # Wake about once a second to report what the program has printed so
-          # far, and kill it at the deadline.
+          # far, honour a stop request, and kill at the deadline.
           deadline = started + limits.timeout_seconds + GRACE_SECONDS
           until waiter.join(PROGRESS_INTERVAL)
             if monotonic >= deadline
               trigger_kill.call(:timeout)
+              break
+            end
+            if stop_when&.call
+              trigger_kill.call(:stopped)
               break
             end
             report_progress.call

@@ -34,6 +34,14 @@ module Runs
       assert_equal "partial", @run.stdout
     end
 
+    test "records a stop asked for by a person" do
+      Complete.stopped(@run)
+      @run.reload
+      assert_equal "stopped", @run.status
+      assert_not_nil @run.finished_at
+      assert_in_delta 3000, @run.duration_ms, 1500
+    end
+
     test "records a platform error with a message and no output" do
       Complete.errored(@run, "worker lost")
       @run.reload

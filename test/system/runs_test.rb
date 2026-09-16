@@ -74,6 +74,25 @@ class RunsTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Succeeded"
   end
 
+  test "a running run can be stopped before its limit" do
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: 4.seconds.ago)
+    sign_in users(:verified)
+    visit run_path(run)
+    assert_selector "h1", text: "Running"
+
+    click_button "Stop"
+    assert_selector "button[disabled]", text: "Stopping…"
+    assert_not_nil run.reload.stop_requested_at
+
+    # The worker notices within a second and kills the sandbox.
+    Runs::Complete.call(run, Sandbox::Result.new(status: :stopped, exit_code: 137, duration_ms: 4800, metadata: { "killed_for" => "stopped" }))
+    assert_selector "h1", text: "Stopped"
+    assert_text "Stopped before it finished"
+    assert_link "Run again"
+    assert_no_button "Stop"
+  end
+
   test "a running run shows the elapsed time ticking up and a bar filling toward the limit" do
     run = runs(:verified_queued)
     run.update!(status: "running", started_at: 3.seconds.ago)

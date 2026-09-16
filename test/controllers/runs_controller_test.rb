@@ -159,6 +159,53 @@ class RunsControllerTest < ActionDispatch::IntegrationTest
     assert_select "pre.output[data-controller=?]", "follow-output"
   end
 
+  test "a queued run can be stopped and ends at once" do
+    sign_in_as @user
+    run = runs(:verified_queued)
+    post stop_run_path(run)
+    assert_redirected_to run_path(run)
+    assert_equal "stopped", run.reload.status
+    follow_redirect!
+    assert_select "h1", /Stopped/
+    assert_select "a", text: "Run again"
+  end
+
+  test "stopping a running run asks the worker and shows that it is stopping" do
+    sign_in_as @user
+    run = runs(:verified_queued)
+    run.update!(status: "running", started_at: 2.seconds.ago)
+    post stop_run_path(run)
+    assert_redirected_to run_path(run)
+    run.reload
+    assert_equal "running", run.status
+    assert_not_nil run.stop_requested_at
+    follow_redirect!
+    assert_select "button[disabled]", text: "Stopping…"
+    assert_select "form[action=?]", stop_run_path(run), count: 0
+  end
+
+  test "the Stop button is offered only while a run is going" do
+    sign_in_as @user
+    get run_path(runs(:verified_queued))
+    assert_select "form[action=?] button", stop_run_path(runs(:verified_queued)), text: "Stop"
+    get run_path(runs(:verified_succeeded))
+    assert_select "form[action=?]", stop_run_path(runs(:verified_succeeded)), count: 0
+    assert_select "button", text: "Stop", count: 0
+  end
+
+  test "only the owner or an admin can stop a run" do
+    sign_in_as @user
+    post stop_run_path(runs(:admin_succeeded))
+    assert_response :not_found
+
+    with_config(admin_emails: [ users(:admin).email_address ]) do
+      sign_in_as users(:admin)
+      post stop_run_path(runs(:verified_queued))
+      assert_redirected_to run_path(runs(:verified_queued))
+      assert_equal "stopped", runs(:verified_queued).reload.status
+    end
+  end
+
   test "output is escaped, never rendered as markup" do
     sign_in_as @user
     run = @user.runs.create!(code: "print('<b>x</b>')", stdout: "<b>bold</b><script>alert(1)</script>", status: "succeeded", exit_code: 0,

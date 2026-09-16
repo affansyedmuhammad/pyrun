@@ -56,6 +56,11 @@ module Sandbox
       ENV.delete("PYRUN_TEST_SECRET")
     end
 
+    test "a run killed because someone asked for it to stop is stopped, whatever the exit code" do
+      assert_equal :stopped, DockerRunner.status_for(exit_code: 137, oom_killed: false, killed_for: :stopped)
+      assert_equal :stopped, DockerRunner.status_for(exit_code: 0, oom_killed: false, killed_for: :stopped)
+    end
+
     test "outcomes are classified from the exit code, the OOM flag, and why we killed it" do
       assert_equal :succeeded, DockerRunner.status_for(exit_code: 0, oom_killed: false, killed_for: nil)
       assert_equal :failed, DockerRunner.status_for(exit_code: 1, oom_killed: false, killed_for: nil)

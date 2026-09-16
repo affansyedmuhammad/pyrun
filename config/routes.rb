@@ -15,7 +15,9 @@ Rails.application.routes.draw do
 
   resources :passwords, param: :token, only: %i[new create edit update]
 
-  resources :runs, only: %i[index new create show]
+  resources :runs, only: %i[index new create show] do
+    member { post :stop } # end a run before its limit
+  end
 
   # Superusers only (docs/DESIGN.md §4.16). Members get a 404 here.
   namespace :admin do

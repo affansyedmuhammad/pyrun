@@ -52,6 +52,28 @@ class ExecuteRunJobTest < ActiveJob::TestCase
     assert_equal "succeeded", @run.status
   end
 
+  test "gives the runner a stop check that reads the run's stop request" do
+    answers = []
+    Sandbox::FakeRunner.respond_with(->(_code, runtime:, limits:, stop_when:, &progress) {
+      answers << stop_when.call
+      Run.find(@run.id).update_columns(stop_requested_at: Time.current)
+      answers << stop_when.call
+      Sandbox::Result.new(status: :stopped, exit_code: 137, duration_ms: 900)
+    }) do
+      ExecuteRunJob.perform_now(@run)
+    end
+    assert_equal [ false, true ], answers
+    assert_equal "stopped", @run.reload.status
+  end
+
+  test "a queued run that was asked to stop is marked stopped without running" do
+    @run.update!(stop_requested_at: Time.current)
+    Sandbox::FakeRunner.respond_with(->(*) { flunk "the runner must not be called" }) do
+      ExecuteRunJob.perform_now(@run)
+    end
+    assert_equal "stopped", @run.reload.status
+  end
+
   test "does nothing for a run that is already finished" do
     finished = runs(:verified_succeeded)
     Sandbox::FakeRunner.respond_with(->(*) { flunk "the runner must not be called" }) do

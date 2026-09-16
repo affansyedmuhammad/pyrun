@@ -1,6 +1,6 @@
 class Run < ApplicationRecord
-  STATUSES = %w[queued running succeeded failed timed_out errored].freeze
-  TERMINAL_STATUSES = %w[succeeded failed timed_out errored].freeze
+  STATUSES = %w[queued running succeeded failed timed_out stopped errored].freeze
+  TERMINAL_STATUSES = %w[succeeded failed timed_out stopped errored].freeze
 
   belongs_to :user
 
@@ -34,6 +34,7 @@ class Run < ApplicationRecord
   after_destroy_commit -> { broadcast_refresh_to(user, :runs); broadcast_refresh_to(:all_runs) }
 
   def finished? = TERMINAL_STATUSES.include?(status)
+  def stop_requested? = stop_requested_at.present?
 
   # The limits this run recorded at submission, which the runner uses verbatim.
   def limits

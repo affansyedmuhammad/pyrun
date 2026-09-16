@@ -19,9 +19,13 @@ module Sandbox
       end
     end
 
-    def run(code, runtime:, limits:, &on_progress)
+    def run(code, runtime:, limits:, stop_when: nil, &on_progress)
       script = self.class.scripted
-      return script.call(code, runtime: runtime, limits: limits, &on_progress) if script.respond_to?(:call)
+      if script.respond_to?(:call)
+        kwargs = { runtime: runtime, limits: limits }
+        kwargs[:stop_when] = stop_when if takes_stop_when?(script)
+        return script.call(code, **kwargs, &on_progress)
+      end
       Array(self.class.scripted_progress).each { |stdout, stderr| on_progress&.call(stdout, stderr) }
       return script if script
 
@@ -39,5 +43,10 @@ module Sandbox
     end
 
     def healthy? = true
+
+    private
+      def takes_stop_when?(script)
+        script.parameters.any? { |type, name| type == :keyrest || (%i[key keyreq].include?(type) && name == :stop_when) }
+      end
   end
 end

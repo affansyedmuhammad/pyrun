@@ -41,6 +41,15 @@ class RunsController < ApplicationController
     Rails.logger.info "admin.run_view admin=#{Current.user.id} run=#{@run.id}" if @run.user_id != Current.user.id
   end
 
+  # Ends a run early. A queued run stops at once; a running one is marked and the
+  # worker kills its sandbox within about a second (the page shows "Stopping").
+  def stop
+    run = Current.user.visible_runs.find(params[:id])
+    Runs::Stop.call(run)
+    Rails.logger.info "admin.run_stop admin=#{Current.user.id} run=#{run.id}" if run.user_id != Current.user.id
+    redirect_to run_path(run, from: params[:from].presence)
+  end
+
   private
     def run_params
       params.expect(run: [ :code, :runtime ])

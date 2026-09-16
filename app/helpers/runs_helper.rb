@@ -1,12 +1,12 @@
 module RunsHelper
   STATUS_LABELS = {
     "queued" => "Queued", "running" => "Running", "succeeded" => "Succeeded",
-    "failed" => "Failed", "timed_out" => "Timed out", "errored" => "Errored"
+    "failed" => "Failed", "timed_out" => "Timed out", "stopped" => "Stopped", "errored" => "Errored"
   }.freeze
 
   STATUS_DOTS = {
     "queued" => "bg-zinc-400", "running" => "bg-sky-500 animate-pulse", "succeeded" => "bg-emerald-500",
-    "failed" => "bg-red-500", "timed_out" => "bg-amber-500", "errored" => "bg-fuchsia-600"
+    "failed" => "bg-red-500", "timed_out" => "bg-amber-500", "stopped" => "bg-zinc-500", "errored" => "bg-fuchsia-600"
   }.freeze
 
   def status_label(run) = STATUS_LABELS.fetch(run.status)
@@ -27,6 +27,7 @@ module RunsHelper
       else "The program exited with code #{run.exit_code}."
       end
     when "timed_out" then "Stopped after #{distance_of_time_in_words(run.timeout_seconds)}, the time limit for a run."
+    when "stopped" then "Stopped before it finished."
     when "errored" then "A system error stopped this run before the code could finish: #{run.error_message}"
     end
   end

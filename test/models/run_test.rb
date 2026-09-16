@@ -57,6 +57,12 @@ class RunTest < ActiveSupport::TestCase
     assert_equal [ second, first ], scope.recent.first(2)
   end
 
+  test "stopped is a terminal status" do
+    assert_includes Run::STATUSES, "stopped"
+    assert_includes Run::TERMINAL_STATUSES, "stopped"
+    assert Run.new(status: "stopped").finished?
+  end
+
   test "finished? is true for every terminal status" do
     assert runs(:verified_succeeded).finished?
     assert runs(:verified_failed).finished?

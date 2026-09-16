@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_030000) do
   create_table "identities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_at_link"
@@ -46,6 +46,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_020000) do
     t.boolean "stderr_truncated", default: false, null: false
     t.text "stdout"
     t.boolean "stdout_truncated", default: false, null: false
+    t.datetime "stop_requested_at"
     t.integer "timeout_seconds", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false

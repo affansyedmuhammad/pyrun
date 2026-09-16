@@ -159,6 +159,15 @@ module Sandbox
       assert snapshots.each_cons(2).all? { |a, b| b.start_with?(a) }, "snapshots must only grow"
     end
 
+    test "a running program is stopped when asked, well before its limit" do
+      t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      asked = -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0 > 1.5 }
+      result = execute("import time\nwhile True: time.sleep(0.1)", timeout_seconds: 30, stop_when: asked)
+      assert_equal :stopped, result.status, result.inspect
+      assert_operator result.duration_ms, :<, 6_000
+      assert_equal "stopped", result.metadata["killed_for"]
+    end
+
     test "reading stdin hits EOF immediately" do
       result = execute("input()")
       assert_equal :failed, result.status
@@ -209,8 +218,8 @@ module Sandbox
         Limits.new(**{ timeout_seconds: 5, memory_mb: 64, cpus: 0.5, pids_limit: 16, max_output_bytes: 100_000 }.merge(overrides))
       end
 
-      def execute(code, **overrides, &progress)
-        @runner.run(code, runtime: Runtime.default, limits: limits(**overrides), &progress)
+      def execute(code, stop_when: nil, **overrides, &progress)
+        @runner.run(code, runtime: Runtime.default, limits: limits(**overrides), stop_when: stop_when, &progress)
       end
 
       def labelled_containers

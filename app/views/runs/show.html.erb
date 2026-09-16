@@ -25,6 +25,11 @@
       <% if @run.finished? %>
         <%= link_to "Run again", new_run_path(run_id: @run.id), class: "btn btn-secondary" %>
       <% else %>
+        <% if @run.stop_requested? %>
+          <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="The sandbox is being stopped">Stopping…</button>
+        <% else %>
+          <%= button_to "Stop", stop_run_path(@run, from: (@from_all ? "all" : nil)), class: "btn btn-secondary", form_class: "contents", title: "Stop this run now" %>
+        <% end %>
         <%# Re-enabled by the Turbo refresh that arrives when the worker finishes. %>
         <button type="button" class="btn btn-secondary" disabled aria-disabled="true" title="Available when this run finishes">Run again</button>
       <% end %>
