@@ -16,8 +16,8 @@ CloudFormation stack in `deploy/aws/pyrun-stack.yaml`, deployed with Kamal 2.
 **What it does.** A WindBorne employee signs up with a company address, proves they
 own the inbox, and submits Python. The program runs in a throwaway container with
 no network, a read-only filesystem, 256 MB, one CPU and a two-minute limit. What it
-printed is stored encrypted and shown on a page that updates itself while the run
-is in flight. Past runs are browsable; admins see everyone's.
+printed is stored encrypted and shown on a page that fills in as the program prints,
+with a Stop button to end a run early. Past runs are browsable; admins see everyone's.
 
 **How it is shaped.** Three kinds of process with three levels of privilege, all
 from one Docker image:
@@ -90,7 +90,13 @@ Docker volume. Mail leaves through Gmail SMTP with an app password.
    killed it), scrubs invalid UTF-8 and NUL bytes, and writes stdout, stderr,
    truncation flags, duration and the image digest in one `update!`. Encryption of
    `code`, `stdout` and `stderr` happens in Active Record, transparently.
-5. **Show.** The commit fires three debounced refresh broadcasts over Solid Cable:
+5. **While it runs.** About once a second the runner hands the job a snapshot of the
+   output so far. `Runs::Progress` writes it without model callbacks and morphs only
+   the output section of the run page over the run's stream, so the clock and the
+   bar keep counting untouched. The same wake-up checks `stop_requested_at`; a Stop
+   from the page marks the run, the worker kills the sandbox, and the run ends as
+   `stopped`. A queued run asked to stop never starts.
+6. **Show.** The commit fires three debounced refresh broadcasts over Solid Cable:
    the run's own stream, the owner's list stream `[user, :runs]`, and the admin
    stream `:all_runs`. Each open page re-fetches itself and Turbo *morphs* the DOM,
    so scroll position, filters and focus survive. There is no global stream; one
@@ -128,7 +134,9 @@ change it.
 | **Kamal 2 on one EC2** | ECS/Fargate, Fly, Heroku | The worker needs a Docker socket; Fargate has none. ECS on EC2 adds a control plane for one host. Kamal gives zero-downtime web switches, Let's Encrypt, and `kamal rollback` with almost no moving parts. | More than one host, or a platform team already runs ECS. |
 | **Encrypt code and output at rest** | Plain text columns | People paste secrets into scripts. A copied `.sqlite3` file or volume snapshot reveals nothing without `master.key`. Cost: ciphertext is not searchable (not needed). | Never. |
 | **Per-person concurrency 1, two sandboxes total** | One slot; one person may take all slots | Two people never wait for each other; nobody can hold every slot. A CPU-bound two-minute run from one person costs the other person nothing. | A 4-vCPU host: raise the total to 4 and the per-person limit to 2. |
-| **Output cap 1 MB, kill on overflow** | Stream to object storage | Simple, bounded memory, one write. A program flooding stdout is stopped in half a second. | Someone needs more than 1 MB or live streaming of output. |
+| **Output cap 1 MB, kill on overflow** | Object storage for large outputs | Simple, bounded memory. A program flooding stdout is stopped in half a second. | Someone needs more than 1 MB of output. |
+| **Live output as one-second snapshots, morphing only the output box** | Per-chunk streaming over Action Cable; full-page refresh per snapshot | Reuses the encrypted columns, the run's stream and Turbo morph; a late joiner sees everything so far because it is in the database; escaping stays server-side. A full-page refresh per snapshot reset the progress widget, so only the output section is morphed. | Per-character latency matters, or a run prints megabytes a second. |
+| **Stop through a flag the worker polls** | Signalling the worker process directly | The web tier still never touches Docker; the worker already wakes once a second, so a stop lands within about a second with no new channel. | Sub-second cancellation is needed. |
 | **Turbo morph refreshes** | Polling, hand-written Action Cable diffs | Server renders once, the browser re-fetches and morphs. No client state to keep in sync; escaping is Rails' default everywhere. | A page with a JavaScript-built widget (the editor) is *replaced*, not morphed, because morphing broke it once. |
 | **Every setting is an env var, parsed once** (`Pyrun::Config`) | Reading `ENV` where needed | One place to validate and print; bad values fail the deploy, not a request; the production boot guard refuses unsafe combinations. | Never. |
 
@@ -297,8 +305,8 @@ Playwright suite, RuboCop, Brakeman and bundler-audit in CI):
    password accounts, then a breached-password check at signup.
 6. **Package installation** via an allowlisted `requirements.txt` resolved by the
    worker from a private mirror into a per-run image layer, sandbox still offline.
-7. **Live output streaming** with chunked appends over Action Cable and outputs beyond
-   1 MB in object storage behind presigned links.
+7. **Outputs beyond 1 MB** in object storage behind presigned links, and per-chunk
+   streaming if one-second snapshots ever feel slow.
 8. **Warm container pool** to cut the ~330 ms start floor, once tiny-script loops are
    a real workload.
 9. **Observability.** Request and job metrics, queue-depth and error-rate alerts,
@@ -337,10 +345,16 @@ Playwright suite, RuboCop, Brakeman and bundler-audit in CI):
 - **What happens when a run prints 10 MB? Loops forever? Forks? Allocates 4 GB?**
   Cut at 1 MB and killed in half a second; killed at 120 s and marked timed out; pid
   limit refuses the fork; the cgroup OOM-kills it and the run says so. Each is a test.
-- **How does the page update live?** The worker's `update!` commits, the model
-  broadcasts a debounced refresh over Solid Cable to the run page, the owner's list and
-  the admin list, and Turbo re-fetches and morphs the DOM. No client-side state, no
-  global stream, escaping is the server's.
+- **How does the page update live?** State changes commit and the model broadcasts a
+  debounced refresh over Solid Cable to the run page, the owner's list and the admin
+  list; Turbo re-fetches and morphs the DOM. Output while running is different: once a
+  second the worker writes a snapshot without callbacks and morphs only the output box,
+  so the progress widget is never touched. No client-side state, no global stream,
+  escaping is the server's.
+- **How does Stop work without the web talking to Docker?** The page sets a timestamp
+  on the run. The worker already wakes once a second for progress; it checks the flag,
+  kills the container, and records the run as stopped. A queued run asked to stop is
+  marked stopped before any worker picks it up.
 - **How would you scale it?** Vertically first (a 4-vCPU host gives four slots and two
   per person, one env change). Then Postgres and more job hosts, since workers are
   stateless. Then a real scheduler with quotas. The per-run floor is the container
