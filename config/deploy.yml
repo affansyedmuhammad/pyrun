@@ -11,15 +11,15 @@
 service: pyrun
 
 # The image name in your registry. For GHCR this is "<github-user>/pyrun".
-image: TODO_REGISTRY_NAMESPACE/pyrun
+image: affansyedmuhammad/pyrun
 
 # One EC2 host runs both roles. Split onto separate hosts later for capacity.
 servers:
   web:
-    - TODO_SERVER_IP
+    - 3.228.115.90
   job:
     hosts:
-      - TODO_SERVER_IP
+      - 3.228.115.90
     cmd: bin/jobs
     options:
       # The worker launches sandboxes on the host daemon via the mounted socket.
@@ -27,20 +27,20 @@ servers:
       # The container must be allowed to read that socket. On the host run
       #   getent group docker | cut -d: -f3
       # and put the number here so the worker joins the docker group:
-      # "group-add": "TODO_DOCKER_GID"
+      "group-add": "993"
 
 # TLS is terminated by Kamal's proxy with an automatic Let's Encrypt certificate.
-# Needs a real domain whose DNS A record points at TODO_SERVER_IP.
+# Needs a real domain whose DNS A record points at the server (done: pyrun.duckdns.org -> 3.228.115.90).
 proxy:
   ssl: true
-  host: TODO_DOMAIN            # e.g. pyrun.example.com
+  host: pyrun.duckdns.org
   app_port: 80                # Thruster listens on 80 inside the web container
 
 # Where the built image is pushed and pulled. GHCR is easiest since the code is
 # already on GitHub; ECR and Docker Hub are alternatives (see DEPLOY.md).
 registry:
   server: ghcr.io
-  username: TODO_GITHUB_USERNAME
+  username: affansyedmuhammad
   password:
     - KAMAL_REGISTRY_PASSWORD  # a GitHub token with write:packages (see .kamal/secrets)
 
@@ -57,21 +57,23 @@ env:
 
     # Boot guard (security review 5 & 10): the app refuses to start in production
     # unless the host size is declared, so sandbox capacity is validated.
-    HOST_MEMORY_MB: "TODO_MB"   # e.g. 2048 on a t3.small; keep concurrency*256MB under this
-    HOST_CPUS: "TODO_CPUS"      # e.g. 2 on a t3.small
+    HOST_MEMORY_MB: "2048"      # t3.small has 2 GB
+    # One sandbox at a time on a 2-vCPU box, leaving CPU for web + worker.
+    SANDBOX_CONCURRENCY: "1"
+    HOST_CPUS: "2"             # t3.small has 2 vCPU
 
     # Identity and links.
-    APP_HOST: TODO_DOMAIN
+    APP_HOST: pyrun.duckdns.org
     ALLOWED_EMAIL_DOMAINS: windbornesystems.com
-    # ALLOWED_EMAILS: you@example.com
-    ADMIN_EMAILS: TODO_YOUR_EMAIL
+    ALLOWED_EMAILS: affansyedmuhammad@gmail.com
+    ADMIN_EMAILS: affansyedmuhammad@gmail.com
 
     # Mail via a Gmail app password (needs 2-Step Verification on the account).
     # The password itself is a secret in .kamal/secrets (SMTP_PASSWORD).
     SMTP_ADDRESS: smtp.gmail.com
     SMTP_PORT: "587"
-    SMTP_USERNAME: TODO_YOUR_GMAIL        # e.g. you@gmail.com (full address)
-    MAIL_FROM: TODO_YOUR_GMAIL            # Gmail sends as the authenticated account, so match it
+    SMTP_USERNAME: affansyedmuhammad@gmail.com
+    MAIL_FROM: affansyedmuhammad@gmail.com
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"

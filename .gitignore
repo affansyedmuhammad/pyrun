@@ -44,3 +44,10 @@
 /.env
 /.env.*
 !/.env.example
+
+# SSH private keys (EC2 key pairs) — never commit
+*.pem
+
+# Deploy secrets (local only)
+.kamal/registry_token
+.kamal/smtp_password
