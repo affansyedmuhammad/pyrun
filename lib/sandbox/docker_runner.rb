@@ -100,8 +100,22 @@ module Sandbox
       def supervise(argv, code, name:, limits:)
         started = monotonic
         killed_for = nil
-        buffers = {}
-        truncated = {}
+        kill_mutex = Mutex.new
+        kill_thread = nil
+        buffers = { stdout: +"".b, stderr: +"".b }
+        truncated = { stdout: false, stderr: false }
+
+        # Kill the container asynchronously and at most once. It must NOT block the
+        # reader threads: `docker kill` waits for the process to die, and a process
+        # blocked writing to a full stdout pipe will not die until that pipe is
+        # drained, so a synchronous kill from a reader that has stopped draining
+        # deadlocks (and wedges the container beyond even `docker rm -f`).
+        trigger_kill = lambda do |reason|
+          kill_mutex.synchronize do
+            killed_for ||= reason
+            kill_thread ||= Thread.new { kill(name) }
+          end
+        end
 
         client_exit = Open3.popen3(client_env, *argv, unsetenv_others: true) do |stdin, stdout, stderr, waiter|
           begin
@@ -113,40 +127,41 @@ module Sandbox
             stdin.close
           end
 
-          readers = [ stdout, stderr ].map do |io|
-            buffers[io] = +"".b
-            truncated[io] = false
+          reader = lambda do |io, key|
             Thread.new do
               loop do
                 chunk = io.readpartial(READ_CHUNK)
-                room = limits.max_output_bytes - buffers[io].bytesize
-                if chunk.bytesize > room
-                  buffers[io] << chunk.byteslice(0, room)
-                  truncated[io] = true
-                  killed_for ||= :output
-                  kill(name)
-                  io.read # drain so the client can exit; nothing more is kept
-                  break
+                room = limits.max_output_bytes - buffers[key].bytesize
+                buffers[key] << chunk.byteslice(0, room) if room.positive?
+                if buffers[key].bytesize >= limits.max_output_bytes && !truncated[key]
+                  truncated[key] = true
+                  trigger_kill.call(:output)
                 end
-                buffers[io] << chunk
+                # Keep reading past the cap, discarding the excess, so the container
+                # never blocks on a full pipe and stays killable.
               end
             rescue EOFError, IOError
               # stream closed
             end
           end
+          threads = [ reader.call(stdout, :stdout), reader.call(stderr, :stderr) ]
 
-          unless waiter.join(limits.timeout_seconds + GRACE_SECONDS)
-            killed_for ||= :timeout
-            kill(name)
-            waiter.join(GRACE_SECONDS) || (Process.kill("KILL", waiter.pid) rescue nil)
+          trigger_kill.call(:timeout) unless waiter.join(limits.timeout_seconds + GRACE_SECONDS)
+
+          unless waiter.join(GRACE_SECONDS)
+            # Last resort if the client still has not detached: force-remove the
+            # container (unblocks the streams) and kill the local docker client.
+            Thread.new { remove_container(name) }
+            Process.kill("KILL", waiter.pid) rescue nil
           end
-          readers.each { |thread| thread.join(GRACE_SECONDS) }
+          threads.each { |thread| thread.join(GRACE_SECONDS) }
+          kill_thread&.join(GRACE_SECONDS)
           waiter.value.exitstatus
         end
 
         Supervision.new(
-          stdout: buffers.values[0].to_s, stderr: buffers.values[1].to_s,
-          stdout_truncated: truncated.values[0] == true, stderr_truncated: truncated.values[1] == true,
+          stdout: buffers[:stdout], stderr: buffers[:stderr],
+          stdout_truncated: truncated[:stdout], stderr_truncated: truncated[:stderr],
           duration_ms: ((monotonic - started) * 1000).round, killed_for: killed_for, client_exit: client_exit
         )
       end
