@@ -60,8 +60,11 @@ env:
     # Boot guard (security review 5 & 10): the app refuses to start in production
     # unless the host size is declared, so sandbox capacity is validated.
     HOST_MEMORY_MB: "2048"      # t3.small has 2 GB
-    # One sandbox at a time on a 2-vCPU box, leaving CPU for web + worker.
-    SANDBOX_CONCURRENCY: "1"
+    # Two sandboxes at once on the 2-vCPU box, so two people never wait for each
+    # other (each person is still limited to one run at a time). Each may use a
+    # full CPU: when both are CPU-bound, web and worker share the cores through
+    # the scheduler and stay responsive. Memory: 2 x SANDBOX_MEMORY_MB (256).
+    SANDBOX_CONCURRENCY: "2"
     HOST_CPUS: "2"             # t3.small has 2 vCPU
 
     # Identity and links.

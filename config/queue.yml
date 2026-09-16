@@ -7,7 +7,9 @@ default: &default
     # number is host capacity; it is validated against HOST_MEMORY_MB at boot.
     - queues: sandbox
       threads: <%= Pyrun.config.sandbox_concurrency %>
-      polling_interval: 0.5
+      # One indexed query per poll is cheap; 0.5 s here cost ~250 ms of average
+      # wait per run on top of the container start.
+      polling_interval: 0.1
     # Everything else (mail, Turbo broadcasts) never waits behind a run.
     - queues: [ default, mailers ]
       threads: 3
