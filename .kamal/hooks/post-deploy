@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+#
+# Ensure the sandbox image the worker runs untrusted code in exists on every
+# host after each deploy. Kamal ships the app image but not this one, and its
+# image prune can remove it, so a plain redeploy could otherwise leave runs
+# failing with "image not found". Building it here (natively on the amd64 host,
+# so it's fast and layer-cached) guarantees runs keep working.
+#
+# Kamal runs this from the project root after a successful deploy.
+set -e
+
+if [ -z "$KAMAL_HOSTS" ]; then
+  echo "post-deploy: KAMAL_HOSTS is empty, skipping sandbox image build"
+  exit 0
+fi
+
+# Matches config/deploy.yml (ssh.user and ssh.keys) and SANDBOX_IMAGE (default).
+SSH_USER=ec2-user
+SSH_KEY=pyrun.pem
+SANDBOX_IMAGE=pyrun-sandbox:latest
+SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=accept-new"
+
+for host in $(echo "$KAMAL_HOSTS" | tr ',' ' '); do
+  [ -n "$host" ] || continue
+  echo "post-deploy: ensuring $SANDBOX_IMAGE on $host"
+  ssh $SSH_OPTS "$SSH_USER@$host" 'mkdir -p ~/sandbox'
+  scp $SSH_OPTS sandbox/Dockerfile sandbox/requirements.txt "$SSH_USER@$host:~/sandbox/"
+  ssh $SSH_OPTS "$SSH_USER@$host" "cd ~/sandbox && docker build -t $SANDBOX_IMAGE . >/dev/null && echo \"  $SANDBOX_IMAGE ready on $host\""
+done
