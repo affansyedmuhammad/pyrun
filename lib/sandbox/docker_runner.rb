@@ -133,7 +133,7 @@ module Sandbox
                 chunk = io.readpartial(READ_CHUNK)
                 room = limits.max_output_bytes - buffers[key].bytesize
                 buffers[key] << chunk.byteslice(0, room) if room.positive?
-                if buffers[key].bytesize >= limits.max_output_bytes && !truncated[key]
+                if chunk.bytesize > room && !truncated[key] # part of this chunk did not fit: the cap is exceeded, not merely reached
                   truncated[key] = true
                   trigger_kill.call(:output)
                 end

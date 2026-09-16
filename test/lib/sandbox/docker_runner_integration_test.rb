@@ -142,6 +142,13 @@ module Sandbox
       assert_operator result.duration_ms, :<, 9_000, "the output cap must stop the run before the timeout"
     end
 
+    test "output that exactly fills the cap is kept whole and not reported as cut" do
+      result = execute("import sys\nsys.stdout.write('x' * 20_000)", max_output_bytes: 20_000)
+      assert_equal :succeeded, result.status, result.inspect
+      assert_equal 20_000, result.stdout.bytesize
+      assert_not result.stdout_truncated
+    end
+
     test "reading stdin hits EOF immediately" do
       result = execute("input()")
       assert_equal :failed, result.status
