@@ -70,8 +70,8 @@ bin/rubocop && bin/brakeman && bin/bundler-audit
 ```
 
 Every change is written test-first; see [docs/TESTING.md](docs/TESTING.md). CI runs
-the same checks and needs a `RAILS_MASTER_KEY` repository secret (the contents of
-`config/master.key`).
+the same checks and needs no secrets: the test environment uses fixed, throwaway
+encryption keys.
 
 ## Configuration
 

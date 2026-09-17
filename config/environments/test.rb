@@ -60,4 +60,11 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Tests never need the real credentials. Fixed, throwaway keys let any checkout
+  # (a fresh clone, or a Dependabot pull request, which gets no repository
+  # secrets) run the encrypted-column tests without RAILS_MASTER_KEY.
+  config.active_record.encryption.primary_key = "pyrun-test-primary-key"
+  config.active_record.encryption.deterministic_key = "pyrun-test-deterministic-key"
+  config.active_record.encryption.key_derivation_salt = "pyrun-test-key-derivation-salt"
 end
