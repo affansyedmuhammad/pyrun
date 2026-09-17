@@ -4,6 +4,8 @@ Notable changes by theme, newest first. Commit messages carry the detail for eac
 
 ## Live output, control and wording
 
+- A sign-in now ends eight hours after it started, active or not; an hourly job clears
+  expired session rows.
 - The run page shows what the program has printed so far, about once a second, and
   the output box follows the newest line until the run ends. Only the output section is
   updated while running, so the elapsed clock and progress bar are never disturbed.

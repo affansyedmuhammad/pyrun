@@ -9,6 +9,9 @@ production: &default
   expire_run_outputs:
     class: ExpireRunOutputsJob
     schedule: every day at 4am
+  expire_sessions:
+    class: ExpireSessionsJob
+    schedule: every hour
 
 development:
   <<: *default

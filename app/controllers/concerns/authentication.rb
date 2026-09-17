@@ -3,7 +3,7 @@
 module Authentication
   extend ActiveSupport::Concern
 
-  SESSION_LIFETIME = 14.days
+  SESSION_LIFETIME = 8.hours # a sign-in ends this long after it started, active or not
 
   # __Host- forces Secure, no Domain, and Path=/, so no subdomain can plant the
   # cookie. Browsers refuse the prefix over plain http, hence the switch.
@@ -75,7 +75,18 @@ module Authentication
         return
       end
 
+      # Eight hours after sign-in the session is over, whatever the cookie says.
+      if session.created_at < SESSION_LIFETIME.ago
+        session.destroy
+        cookies.delete(SESSION_COOKIE)
+        return
+      end
+
       session
+    end
+
+    def set_session_cookie(session)
+      cookies.signed[SESSION_COOKIE] = { value: session.id, httponly: true, secure: Rails.application.config.force_ssl, same_site: :lax, expires: SESSION_LIFETIME.from_now }
     end
 
     def request_authentication
@@ -94,7 +105,7 @@ module Authentication
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip, login_method: method).tap do |session|
         user.update_column(:last_signed_in_at, Time.current)
         Current.session = session
-        cookies.signed[SESSION_COOKIE] = { value: session.id, httponly: true, secure: Rails.application.config.force_ssl, same_site: :lax, expires: SESSION_LIFETIME.from_now }
+        set_session_cookie(session)
         Rails.logger.info "auth.login user=#{user.id} method=#{method} ip=#{request.remote_ip}"
       end
     end

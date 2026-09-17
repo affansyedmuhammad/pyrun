@@ -142,8 +142,8 @@ would go under it.
 **Who gets in.** An allowlisted domain or address, inbox verification bound to the
 verification timestamp (so verifying invalidates every outstanding link), bcrypt with a
 production cost factor, a minimum length with composition rules, uniform "incorrect
-email or password" responses and timing, server-side sessions revocable per person or
-for everyone.
+email or password" responses and timing, server-side sessions that end eight hours
+after sign-in, active or not, and are revocable per person or for everyone.
 
 **The browser.** A `__Host-` session cookie, HSTS, a Content Security Policy with a
 per-session nonce and `object-src 'none'`, no framing, `nosniff`, referrer and
@@ -206,6 +206,6 @@ dominates and is the floor.
 | A container is leaked | The reaper removes labelled containers older than the limit plus grace. |
 
 Recurring jobs: sweep stale runs every minute, reap orphan containers every few minutes,
-expire outputs daily when retention is set. Structured one-line log events
+expire old sessions hourly, expire outputs daily when retention is set. Structured one-line log events
 (`run.submitted`, `run.finished`, `run.errored`, `admin.run_view`, `admin.run_stop`)
 and a `pyrun:stats` task cover the basics; metrics and alerting are future work.

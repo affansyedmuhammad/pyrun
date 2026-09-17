@@ -61,8 +61,8 @@ class EmailVerificationsControllerTest < ActionDispatch::IntegrationTest
 
   test "an expired link explains and offers a resend" do
     token = @user.generate_token_for(:email_verification)
-    sign_in_as @user
     travel 25.hours do
+      sign_in_as @user # a fresh sign-in; sessions themselves last eight hours
       get email_verification_path(token)
       assert_redirected_to pending_email_verification_path
       follow_redirect!

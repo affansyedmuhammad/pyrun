@@ -315,8 +315,8 @@ recovery from signup, and later, "add a password to my Google-only account".
 ### 4.9 Logout and sessions
 
 - `DELETE /logout` destroys the `Session` row and clears the cookie.
-- Cookie: signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, **14-day expiry**
-  (the generator uses `permanent`, which is 20 years; shortened).
+- Cookie: signed, `HttpOnly`, `SameSite=Lax`, `Secure` in production, **8-hour expiry**
+  from sign-in (the generator uses `permanent`, which is 20 years).
 - A fresh `Session` row and cookie value on every login, so no fixation.
 - Sessions are rows, so deleting a row is real revocation. Password change deletes all of
   a user's rows.
@@ -382,7 +382,7 @@ cache because the check runs on every request. No call site changes.
 - **Tokens**: `generates_token_for` tokens are signed, expiring, bound to a column that
   changes on use, and never stored. There is nothing in the database to steal.
 - **CSRF**: Rails forgery protection on every form, including the future OAuth start.
-- **Cookies**: signed, `HttpOnly`, `SameSite=Lax`, `Secure`, 14 days, server-side rows.
+- **Cookies**: signed, `HttpOnly`, `SameSite=Lax`, `Secure`, 8 hours from sign-in, server-side rows.
 - **Open redirect**: the return-to path must be a relative path on this app.
 - **Transport**: `force_ssl` and HSTS in production.
 - **Audit**: signups, logins, failures, resets, and rejected attempts are logged with
