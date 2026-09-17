@@ -4,6 +4,15 @@ Submit Python, run it in an isolated sandbox for up to two minutes, watch what i
 prints as it runs, stop it early if you like, and browse past runs. Built for the
 WindBorne take-home.
 
+## Architecture
+
+<img src="docs/diagrams/architecture-high-level.png" alt="Client, TLS proxy, web app, job worker, database and one sandbox container per run" width="100%">
+
+The internals, with containers, processes, databases and the run path, are in
+[docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
+
+## Screenshots
+
 <p>
   <img src="docs/screenshots/run-live.png" alt="A run page showing output arriving while the run is still going" width="49%">
   <img src="docs/screenshots/runs.png" alt="The runs list with statuses, durations and live updates" width="49%">

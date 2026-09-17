@@ -11,29 +11,97 @@ read-only filesystem, a memory and CPU budget and a time limit. What it prints a
 on the run page as it runs, is stored encrypted, and can be browsed later. A run can be
 stopped early. Admins see everyone's runs and manage accounts.
 
-**Three processes, three levels of privilege, one Docker image.**
+**High-level architecture.** A client talks to one server over TLS; inside it, a web
+application, a job worker, a database and one isolated container per run.
 
+```mermaid
+flowchart LR
+  U["Client<br/>web browser"]
+  subgraph srv["Server: one host"]
+    direction LR
+    PX["TLS reverse proxy"]
+    WEB["Web app<br/>sign-in · submit runs · browse results · live pages"]
+    DB[("Database<br/>users · sessions · runs · job queue")]
+    WK["Job worker<br/>runs programs · sends mail"]
+    SB["Sandbox<br/>one isolated container per run<br/>no network · limits · time cap"]
+  end
+  MAIL["Mail provider"]
+
+  U -->|HTTPS| PX
+  PX --> WEB
+  WEB <--> DB
+  WK <--> DB
+  WK -->|starts, watches, stops| SB
+  SB -->|stdout and stderr| WK
+  WK --> MAIL
+  WEB -.->|live updates| U
 ```
-                    Internet
-                       │ 443 (TLS at the proxy)
-               ┌───────▼────────┐
-               │     proxy      │  TLS termination, zero-downtime switch between versions
-               └───────┬────────┘
-                       │
-        ┌──────────────▼───────────────┐      ┌──────────────────────────────────┐
-        │ web  (Puma)                  │      │ job  (Solid Queue)               │
-        │ authenticates, validates,    │      │ sandbox worker: N threads         │
-        │ writes Run rows, renders     │      │ default + mailers worker          │
-        │ no Docker socket             │      │ mounts the Docker socket          │
-        └──────────────┬───────────────┘      └──────────────┬───────────────────┘
-                       ▼                                     │ docker run …
-        ┌──────────────────────────────┐                     ▼
-        │ SQLite (WAL) on a volume:    │      ┌──────────────────────────────────┐
-        │ app · queue · cache · cable  │◀─────│ sandbox: one container per run   │
-        └──────────────────────────────┘      │ no network, read-only, limits    │
-              Solid Cable ──▶ Turbo            │ python3 -I -u -  ← code on stdin │
-              (run page, owner's list,         └──────────────────────────────────┘
-               admin list)
+
+**Internals.** The same server with its containers, processes, databases and the paths
+a run and its output take. Both diagrams are also in [diagrams/](diagrams/) as PNG for
+slides.
+
+```mermaid
+flowchart LR
+  subgraph client["Client: web browser"]
+    UI["Turbo + Stimulus<br/>CodeMirror editor"]
+  end
+
+  subgraph host["EC2 host · Docker"]
+    direction LR
+    PX["Reverse proxy (TLS)"]
+
+    subgraph web["web container · app image"]
+      direction TB
+      PUMA["Thruster → Puma"]
+      RAILS["Rails app<br/>sessions · controllers · services"]
+      PUMA --> RAILS
+    end
+
+    subgraph job["job container · same image · Docker socket"]
+      direction TB
+      SQ["Solid Queue supervisor"]
+      SW["sandbox worker<br/>one run at a time per person"]
+      DW["default worker<br/>broadcasts · mail"]
+      SCH["scheduler<br/>sweep · reap · expire"]
+      RUN["DockerRunner<br/>starts, watches, kills the sandbox"]
+      SQ --> SW
+      SQ --> DW
+      SQ --> SCH
+      SW --> RUN
+    end
+
+    subgraph data["Docker volume · SQLite"]
+      direction TB
+      DB[("app database<br/>encrypted code and output")]
+      QDB[("queue database")]
+      CDB[("cache and cable databases")]
+    end
+
+    subgraph exec["Execution"]
+      direction TB
+      DAEMON["Docker daemon"]
+      PY["sandbox container per run<br/>python + numpy · isolated"]
+      DAEMON -->|creates| PY
+    end
+  end
+  MAIL["SMTP provider"]
+
+  UI -->|HTTPS| PX
+  UI -.->|WebSocket| PX
+  PX --> PUMA
+  PX ~~~ SQ
+  RAILS -->|reads and writes| DB
+  RAILS -->|enqueues a job row| QDB
+  PUMA -.->|reads broadcasts| CDB
+  QDB -->|sandbox queue| SW
+  QDB -->|default and mailers queues| DW
+  SCH -->|recurring jobs| QDB
+  RUN -->|loads the run · progress each second · final result| DB
+  RUN -->|broadcasts| CDB
+  RUN -->|docker run · kill| DAEMON
+  PY -->|stdout and stderr| RUN
+  DW -->|mail| MAIL
 ```
 
 - **web** never talks to Docker. It authenticates, validates, writes a `Run` in status

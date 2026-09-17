@@ -55,3 +55,4 @@
 # Private notes and environment-specific deploy values
 /notes/
 .kamal/deploy.env
+.DS_Store

@@ -99,6 +99,7 @@ scripts a runner in any test; `with_config(...)` swaps configuration for a block
 - **An admin action.** A member route under `admin/users`, one service call, a
   `button_to` with an accessible name, a controller test for members getting a 404.
 - **Copy.** Change the view or `config/locales/en.yml`, then the tests that pin it.
+- **A diagram.** The Mermaid source lives inline in docs/IMPLEMENTATION.md, which GitHub renders. After editing it, re-export the PNGs in docs/diagrams with any Mermaid renderer (mermaid.live works) so the README and slides stay in step.
 
 ## Copy voice
 
