@@ -15,8 +15,13 @@ system has by design.
 3. **Fair scheduling and quotas.** Per-person daily CPU-seconds, queue position on the
    run page, and a scheduler that alternates between people rather than first-in
    first-out.
-4. **gVisor on the runner hosts** (a configuration flag), then microVMs (Firecracker or
-   a per-run VM service) if the tool ever serves a population beyond trusted employees.
+4. **Sandbox hardening beyond namespaces and cgroups.** Show a program as little of
+   the machine as possible: a runtime with its own kernel view (gVisor is a
+   configuration flag away; Firecracker or a per-run VM service after that) so host
+   kernel, CPU and memory details are not observable from inside; a smaller sandbox
+   image with only the interpreter and its libraries, no shell; a stricter seccomp
+   profile than Docker's default; and a routine cadence for host kernel patches.
+   Worth doing before the tool serves anyone beyond trusted employees.
 5. **Google sign-in**, for which the `identities` table is already in place, then TOTP
    two-factor for password accounts and a breached-password check at signup.
 6. **Package installation** through an allowlisted `requirements.txt` resolved by the
