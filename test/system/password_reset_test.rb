@@ -11,7 +11,7 @@ class PasswordResetTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Reset your password"
     fill_in "Email", with: user.email_address
     click_button "Send reset link"
-    assert_text "If that address has an account"
+    assert_text "If an account exists for that email"
 
     visit path_from_mail(ActionMailer::Base.deliveries.last, "/passwords/")
     assert_selector "h1", text: "Choose a new password"

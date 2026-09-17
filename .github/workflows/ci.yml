@@ -97,6 +97,14 @@ jobs:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/rails db:test:prepare test
 
+      - name: Keep the test log from a failed run
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-failure
+          path: ${{ github.workspace }}/log/test.log
+          if-no-files-found: ignore
+
   system-test:
     runs-on: ubuntu-latest
 
@@ -135,10 +143,12 @@ jobs:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: bin/rails db:test:prepare test:system
 
-      - name: Keep screenshots from failed system tests
+      - name: Keep screenshots and the test log from failed system tests
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
+          name: system-test-failure
+          path: |
+            ${{ github.workspace }}/tmp/screenshots
+            ${{ github.workspace }}/log/test.log
           if-no-files-found: ignore
