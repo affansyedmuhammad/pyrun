@@ -139,7 +139,7 @@ class RunsTest < ApplicationSystemTestCase
     assert_selector "pre", text: "print('after errors')"
   end
 
-  test "the editor highlights Python, indents after a colon, indents with Tab, and submits with Cmd+Enter" do
+  test "the editor highlights Python, indents after a colon, indents with Tab, and submits with Cmd or Ctrl+Enter" do
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = false
     sign_in users(:verified)
     visit new_run_path
@@ -149,16 +149,16 @@ class RunsTest < ApplicationSystemTestCase
     assert_selector ".cm-content .tok-keyword", text: "import"
 
     editor = find(".cm-content")
-    editor.send_keys([ :meta, "a" ], :backspace)
+    editor.send_keys([ modifier_key, "a" ], :backspace)
     editor.send_keys("if True:", :enter, "pass")
     assert_equal "if True:\n    pass", find("textarea[name='run[code]']", visible: :all).value
 
-    editor.send_keys([ :meta, "a" ], :backspace)
+    editor.send_keys([ modifier_key, "a" ], :backspace)
     editor.send_keys("x = 1", :enter, :tab, "y = 'z'")
     assert_equal "x = 1\n    y = 'z'", find("textarea[name='run[code]']", visible: :all).value
     assert_selector ".cm-content .tok-string", text: "'z'"
 
-    editor.send_keys([ :meta, :enter ])
+    editor.send_keys([ modifier_key, :enter ])
     assert_selector "h1", text: "Queued"
     assert_selector "pre", text: "x = 1\n    y = 'z'"
   end
@@ -239,10 +239,16 @@ class RunsTest < ApplicationSystemTestCase
       page.document.synchronize(3) { page.evaluate_script(expression) or raise Capybara::ElementNotFound, message }
     end
 
+    # The editor uses Cmd on macOS and Ctrl elsewhere; Chromium runs on the same
+    # OS as the tests, so pick the key the browser will honour.
+    def modifier_key
+      RUBY_PLATFORM.include?("darwin") ? :meta : :control
+    end
+
     def fill_in_code(text)
       editor = find(".cm-content")
       editor.click
-      editor.send_keys([ :meta, "a" ], :backspace)
+      editor.send_keys([ modifier_key, "a" ], :backspace)
       editor.send_keys(text)
     end
 
