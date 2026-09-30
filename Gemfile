@@ -25,7 +25,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "json", "< 3"
 
 # Pagination for the runs lists.
-gem "pagy", "~> 9.3"
+gem "pagy", "~> 43.6"
 
 # Per-address request throttling in front of the app.
 gem "rack-attack", "~> 6.7"
