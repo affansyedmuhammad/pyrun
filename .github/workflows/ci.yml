@@ -97,7 +97,7 @@ jobs:
         run: bin/rails db:test:prepare test
 
       - name: Keep the test log from a failed run
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: test-failure
@@ -142,7 +142,7 @@ jobs:
         run: bin/rails db:test:prepare test:system
 
       - name: Keep screenshots and the test log from failed system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: system-test-failure
